@@ -1,6 +1,6 @@
 /**
  * Design System UI Components
- * MINEOPS dark industrial skin: hairline borders, flat surfaces, copper accents,
+ * GeoOps dark industrial skin: hairline borders, flat surfaces, copper accents,
  * semantic tones with dimmed fills. Sharp corners; radius is reserved for controls.
  */
 import type { ReactNode } from 'react';
@@ -70,7 +70,7 @@ export function Encabezado({
       <div>
         <div className="flex items-center gap-2">
           <span aria-hidden className="inline-block size-1.5 bg-accent" />
-          <span className="rotulo">MINEOPS · Collpahuasi</span>
+          <span className="rotulo">GeoOps | Collpahuasi</span>
         </div>
         <h1 className="mt-2 font-display text-2xl font-normal tracking-tight text-ink not-italic lg:text-[34px]">
           {titulo}

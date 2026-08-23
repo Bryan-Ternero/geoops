@@ -6,7 +6,7 @@ import { Icon } from '@/src/components/icons';
 
 /**
  * Self-contained fallback: it renders when the root layout itself fails, so no global
- * stylesheet is guaranteed. The palette below mirrors the MINEOPS tokens as literals.
+ * stylesheet is guaranteed. The palette below mirrors the GeoOps tokens as literals.
  */
 export default function GlobalError({
   error,

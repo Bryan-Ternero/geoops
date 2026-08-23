@@ -1,4 +1,4 @@
-# MineOps — Control de equipos mineros y mantenimiento por horómetro
+# GeoOps — Control de equipos mineros y mantenimiento por horómetro
 
 [![CI](https://github.com/GutoPin/miners-fullstack-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/GutoPin/miners-fullstack-challenge/actions/workflows/ci.yml)
 
@@ -49,24 +49,21 @@ anticipar el bloqueo en lugar de descubrirlo al inicio de la guardia.
 
 Los datos de ejemplo ya están cargados, con los casos borde armados.
 
-1. **Un rechazo con todas sus razones.** En *Turnos*, abrir el turno de dentro de cinco días
-   y asignar `CAM-003` a Luis Mamani (`OP-005`). El sistema responde con las tres reglas
-   incumplidas a la vez: equipo bloqueado por horómetro, operador ya asignado en ese turno y
-   certificación de camión vencida a la fecha del turno. Una de ellas no es autorizable, así
-   que la asignación no ofrece la opción de forzarse.
-2. **Excepción autorizada.** En el turno de hoy (jornada día), asignar `CAM-003` a María
-   Flores (`OP-002`). Aquí la única regla incumplida es una política, así que un supervisor
-   ve el botón *Forzar con autorización*: pide motivo, queda firmada en la auditoría y la
-   asignación se crea en estado **EN RIESGO**. Si después se cancela, se ve la otra mitad de
-   la regla: el turno no se deja cerrar mientras haya asignaciones en riesgo sin resolver.
-3. **Bloqueo por horómetro.** Cerrar el turno de hoy. `CAM-002` pasa de 738 a 750 h, alcanza
-   su umbral y queda **BLOQUEADO**; su asignación de pasado mañana pasa a **EN RIESGO** con
-   alerta crítica, en la misma transacción.
-4. **Proyección.** En */proyeccion* aparece lo anterior antes de que ocurra: `CAM-002` y
-   `EXC-001` cruzan su umbral dentro de la semana, con la fecha y la jornada exactas.
-5. **Mantenimiento.** Registrar el servicio de `CAM-002` lo libera, fija el siguiente umbral
-   a partir del anterior (no del horómetro real) y devuelve a activas las asignaciones que
-   estaban en riesgo por ese bloqueo.
+1. **Un rechazo con sus razones.** En *Turnos*, intentar asignar `TAC-103` a Graciela Mamani
+   (`OPR-015`). El sistema identifica el equipo bloqueado y la falta de certificación vigente;
+   la imposibilidad física no puede forzarse.
+2. **Excepción autorizada.** Intentar asignar un equipo bloqueado a un operador habilitado.
+   Un supervisor puede usar *Forzar con autorización*: pide motivo, deja traza en auditoría y
+   crea la asignación en estado **EN RIESGO**. El turno no se puede cerrar mientras existan
+   asignaciones en riesgo sin resolver.
+3. **Bloqueo por horómetro.** Cerrar el turno de hoy. `TAC-102` pasa de 738 a 750 h, alcanza
+   su umbral y queda **BLOQUEADO**; las asignaciones futuras afectadas pasan a **EN RIESGO**
+   con alerta crítica, en la misma transacción.
+4. **Proyección.** En */proyeccion* aparece lo anterior antes de que ocurra: `TAC-102` y
+   `EXC-201` cruzan su umbral dentro de la semana, con la fecha y la jornada exactas.
+5. **Mantenimiento.** Registrar el servicio del equipo bloqueado lo libera, fija el siguiente
+   umbral a partir del anterior (no del horómetro real) y devuelve a activas las asignaciones
+   que estaban en riesgo por ese bloqueo.
 6. **Auditoría.** En */auditoria* está el libro mayor del horómetro, con las horas antes y
    después de cada movimiento, y las excepciones firmadas.
 

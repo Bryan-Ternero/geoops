@@ -43,13 +43,13 @@ function Marca({ compacto = false }: { compacto?: boolean }) {
     <Link
       href="/"
       className="flex shrink-0 items-center gap-2.5"
-      aria-label="MINEOPS · ir a la consola"
+      aria-label="GeoOps · ir al panel de control"
     >
       <Monograma />
       {!compacto && (
         <span className="min-w-0 leading-tight">
           <span className="block font-display text-[17px] font-normal tracking-wide text-ink not-italic">
-            MINEOPS
+            GeoOps
           </span>
           <span className="block text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
             Collpahuasi
