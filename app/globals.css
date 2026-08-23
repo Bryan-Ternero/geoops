@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: var(--font-fraunces), 'Times New Roman', Georgia, serif;
+  --font-display: var(--font-fraunces), 'Times New Roman', Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-condensed: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  /* Industrial Precision Light — canvas cálido de arena con módulos blancos planos */
+  --color-bg0: #f6f3ee;
+  --color-bg1: #ffffff;
+  --color-bg2: #ece7de;
+  --color-bg-deep: #efeae1;
+  --color-canvas: var(--color-bg0);
+  --color-canvas-subtle: #f0ebe3;
+  --color-surface: var(--color-bg1);
+  --color-surface-elevated: #ffffff;
+
+  --color-ink: #212529;
+  --color-ink-muted: #343a40;
+  --color-muted: #6c757d;
+  --color-ink-low: #adb5bd;
+  --color-line: #dee2e6;
+  --color-line-subtle: #e9ecef;
+  --color-line-strong: #ced4da;
+
+  --color-copper: #f48c06;
+  --color-copper-hover: #ffb877;
+  --color-copper-down: #d97c05;
+  --color-copper-ink: #ffffff;
+  --color-accent: var(--color-copper);
+  --color-accent-hover: var(--color-copper-hover);
+
+  --color-ok: #00875f;
+  --color-ok-dim: color-mix(in srgb, var(--color-ok) 10%, var(--color-bg1));
+  --color-aviso: #b26a00;
+  --color-aviso-dim: color-mix(in srgb, #f08c00 12%, var(--color-bg1));
+  --color-riesgo: #d9480f;
+  --color-riesgo-dim: color-mix(in srgb, var(--color-riesgo) 10%, var(--color-bg1));
+  --color-bloqueo: #ba1a1a;
+  --color-bloqueo-dim: color-mix(in srgb, var(--color-bloqueo) 8%, var(--color-bg1));
+  --color-taller: #036982;
+  --color-taller-dim: color-mix(in srgb, var(--color-taller) 10%, var(--color-bg1));
+  --color-neutro: #6c757d;
+  --color-neutro-dim: color-mix(in srgb, var(--color-neutro) 10%, var(--color-bg1));
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 10px;
+}
+
+html {
+  background: var(--color-bg-deep);
+  color: var(--color-ink);
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-copper);
+  color: #ffffff;
+}
+
+.rotulo {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* firma secundaria: corner ticks en cobre sobre los paneles clave */
+.panel-ticks {
+  position: relative;
+}
+
+.panel-ticks::before,
+.panel-ticks::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+
+.panel-ticks::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid color-mix(in srgb, var(--color-copper) 45%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--color-copper) 45%, transparent);
+}
+
+.panel-ticks::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 1px solid color-mix(in srgb, var(--color-copper) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-copper) 45%, transparent);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-copper);
+  outline-offset: 2px;
+}
+
+dialog[open] {
+  margin: auto;
+  animation: modal-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+dialog[open]::backdrop {
+  animation: backdrop-fade 220ms ease-out;
+  background: rgba(33, 37, 41, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+:where(a, button, input, select, textarea, label) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ken Burns effect para la imagen del login: paneo + zoom suave */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate3d(-1.5%, 1%, 0);
+  }
+  100% {
+    transform: scale(1.12) translate3d(1%, -1%, 0);
+  }
+}

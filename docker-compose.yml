@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: geoops-db
+    environment:
+      POSTGRES_USER: geoops
+      POSTGRES_PASSWORD: geoops
+      POSTGRES_DB: geoops
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geoops"]
+      interval: 5s
+      retries: 10
+
+  # one-shot job: prepares the database and exits. uses the builder stage, which has the
+  # source and the cli, so the published image carries neither. both commands are idempotent
+  migrate:
+    build:
+      context: .
+      target: builder
+    container_name: geoops-migrate
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://geoops:geoops@db:5432/geoops
+      MIGRATE_DATABASE_URL: postgresql://geoops:geoops@db:5432/geoops
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+    restart: "no"
+
+  app:
+    build: .
+    container_name: geoops-app
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    environment:
+      # without a pooler both strings match; on neon they do not
+      DATABASE_URL: postgresql://geoops:geoops@db:5432/geoops
+      MIGRATE_DATABASE_URL: postgresql://geoops:geoops@db:5432/geoops
+      AUTH_SECRET: local-development-only
+      AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: "true"
+      TZ: America/Lima
+    ports: ["3000:3000"]
+
+volumes:
+  pgdata:

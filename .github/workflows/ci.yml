@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    # the integration tests need a real postgres: the concurrency bugs only appear there
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+
+    env:
+      # prisma.config.ts reads MIGRATE_DATABASE_URL; prisma 7 moved the url out of the schema
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
+      MIGRATE_DATABASE_URL: postgresql://test:test@localhost:5432/test
+      AUTH_SECRET: ci-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # postinstall generates the prisma client
+      - run: npm ci
+
+      - run: npx prisma migrate deploy
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run test:int
