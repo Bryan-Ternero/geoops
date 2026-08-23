@@ -1,6 +1,11 @@
 # GeoOps — Control de equipos mineros y mantenimiento por horómetro
 
-[![CI](https://github.com/GutoPin/miners-fullstack-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/GutoPin/miners-fullstack-challenge/actions/workflows/ci.yml)
+[![CI](https://github.com/Bryan-Ternero/geoops/actions/workflows/ci.yml/badge.svg)](https://github.com/Bryan-Ternero/geoops/actions/workflows/ci.yml)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)
+![License](https://img.shields.io/badge/license-no%20license-lightgrey)
 
 Aplicación web para asignar equipos (camiones de acarreo, excavadoras, perforadoras) a los
 turnos de una operación minera y controlar cuándo entran a mantenimiento, en reemplazo de las
@@ -16,6 +21,34 @@ anticipar el bloqueo en lugar de descubrirlo al inicio de la guardia.
 |---|---|
 | **Aplicación** | https://miners-fullstack-challenge.vercel.app |
 | **Decisiones de diseño** | [`DECISIONES.md`](./DECISIONES.md) |
+
+---
+
+## Contenido
+
+- [Qué demuestra este proyecto](#qué-demuestra-este-proyecto)
+- [Acceso](#acceso)
+- [Funcionalidad](#funcionalidad)
+- [Recorrido de la demo](#recorrido-de-la-demo)
+- [Stack](#stack)
+- [Ejecución local](#ejecución-local)
+- [Despliegue](#despliegue)
+- [Estructura](#estructura)
+- [Licencia](#licencia)
+
+---
+
+## Qué demuestra este proyecto
+
+Este proyecto pone énfasis en tres aspectos:
+
+- **Reglas de negocio testeables de forma aislada.** `src/core/` no depende de ORM ni de
+   framework: las reglas de asignación, la política de umbrales y la proyección a 7 días se
+   pueden probar como funciones puras.
+- **Transacciones consistentes en operaciones críticas.** El cierre de turno y el registro de
+   mantenimiento ocurren en una sola transacción para evitar estados intermedios inconsistentes.
+- **Trazabilidad operativa.** El sistema conserva el historial del horómetro, las excepciones
+   autorizadas y un `requestId` para rastrear los errores del API.
 
 ---
 
@@ -79,8 +112,8 @@ Los datos de ejemplo ya están cargados, con los casos borde armados.
 | Autenticación | Auth.js (Credentials) + bcrypt, roles `SUPERVISOR / PLANNER / VIEWER` |
 | Validación | Zod en el borde HTTP; las reglas de negocio, en TypeScript puro |
 | Interfaz | Tailwind CSS 4 |
-| Tests | Vitest: unitarios del motor de reglas e integración contra PostgreSQL real |
-| CI | GitHub Actions: lint, typecheck y ambas suites en cada push |
+| Tests | Vitest: unitarios e integración contra PostgreSQL real; Playwright: flujos E2E |
+| CI | GitHub Actions: lint, typecheck y pruebas unitarias e integración en cada push |
 | Infraestructura | Vercel + Neon, y `docker compose` para levantar todo en local |
 
 El porqué de cada elección está en [`DECISIONES.md`](./DECISIONES.md).
@@ -123,6 +156,7 @@ npm run lint           # eslint
 npm run typecheck      # tsc --noEmit
 npm run test           # unitarios: reglas, política de umbrales y proyección
 npm run test:int       # integración: cierre, mantenimiento y concurrencia (requiere base)
+npm run test:e2e       # flujos end to end contra la aplicación local
 npm run db:seed        # datos de ejemplo
 ```
 
@@ -130,9 +164,12 @@ npm run db:seed        # datos de ejemplo
 
 ## Despliegue
 
-La aplicación corre en Vercel y la base de datos en Neon (PostgreSQL serverless). Cada push a
-`main` despliega y aplica las migraciones pendientes. Un workflow programado consulta
-`/api/health` cada 6 horas para que la base no esté suspendida cuando alguien abra la demo.
+La aplicación está preparada para correr en Vercel y la base de datos en Neon (PostgreSQL
+serverless). Una vez conectado el repositorio a Vercel, cada push a `main` podrá desplegar la
+aplicación. Las migraciones pendientes deben ejecutarse con `MIGRATE_DATABASE_URL`; el build
+actual también ejecuta `prisma migrate deploy` antes de compilar. Un workflow programado
+consulta `/api/health` cada 6 horas para que la base no esté suspendida cuando alguien abra la
+demo.
 
 Los rechazos y errores del API se registran como una línea JSON con `requestId`, y ese mismo
 identificador se devuelve en la cabecera `x-request-id` de la respuesta, así que con el
@@ -143,10 +180,21 @@ número que ve el usuario se puede ubicar la línea exacta en los logs.
 ## Estructura
 
 ```
-src/domain/      Reglas de negocio en TypeScript puro: sin ORM, sin framework
-src/services/    Casos de uso y transacciones
+src/core/        Reglas de negocio en TypeScript puro: sin ORM, sin framework
+src/use-cases/   Casos de uso y transacciones
 app/api/         Endpoints REST
-app/(dashboard)/ Interfaz
+app/(workspace)/ Interfaz
 prisma/          Esquema, migraciones versionadas y datos de ejemplo
-tests/           Unitarios del dominio e integración contra PostgreSQL
+tests/           Unitarios, integración contra PostgreSQL y flujos E2E
 ```
+
+`src/core/` y `src/use-cases/` están separados a propósito: el primero contiene las reglas de
+negocio como funciones puras y el segundo las orquesta dentro de transacciones y casos de uso
+concretos. El detalle de esta decisión está en [`DECISIONES.md`](./DECISIONES.md).
+
+---
+
+## Licencia
+
+Este repositorio no declara actualmente una licencia de uso o distribución. El código se
+mantiene como proyecto de evaluación técnica.
