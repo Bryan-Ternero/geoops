@@ -15,7 +15,7 @@ test.describe('Autenticación y Control de Accesos', () => {
 
     await expect(page).toHaveURL('/');
     await expect(page.locator('#contenido')).toBeVisible();
-    await expect(page.getByText(/Supervisor/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Rosario Quispe Supervisor/i })).toBeVisible();
   });
 
   test('debe permitir iniciar sesión como Planificador', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Autenticación y Control de Accesos', () => {
 
     await expect(page).toHaveURL('/');
     await expect(page.locator('#contenido')).toBeVisible();
-    await expect(page.getByText(/Planificador/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Alonso Rivas Planificador/i })).toBeVisible();
   });
 
   test('debe rechazar credenciales inválidas con mensaje de error', async ({ page }) => {

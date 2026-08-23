@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
-  test('1. Flujo de Login y Navegación como SUPERVISOR (Valeria Mendoza)', async ({ page }) => {
+  test('1. Flujo de Login y Navegación como SUPERVISOR (Rosario Quispe)', async ({ page }) => {
     // 1. Ir al Login
     await page.goto('/login');
     await expect(page).toHaveURL(/.*login/);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Iniciar sesión/i);
+    await expect(page.getByRole('heading', { name: /Iniciar sesión/i })).toBeVisible();
 
     // 2. Llenar credenciales de Supervisor
     await page.fill('input[name="email"]', 'supervisor@geoops.pe');
@@ -15,7 +15,7 @@ test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
     // 3. Verificar acceso al Dashboard Principal
     await expect(page).toHaveURL('http://localhost:3000/');
     await expect(page.locator('#contenido')).toBeVisible();
-    await expect(page.getByText(/Valeria Mendoza|Supervisor/i).first()).toBeVisible();
+    await expect(page.getByText(/Rosario Quispe|Supervisor/i).first()).toBeVisible();
 
     // 4. Navegar por todas las vistas operativas
     // A) Despacho & Guardias
@@ -24,22 +24,22 @@ test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
 
     // B) Proyección 7D
     await page.goto('/proyeccion');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Proyección Operativa 7D/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Mantenimiento Predictivo/i);
 
     // C) Flota & Telemetría
     await page.goto('/equipos');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Gestión de Flota/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Parque de Maquinaria Pesada/i);
 
     // D) Personal & Certificaciones
     await page.goto('/operadores');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Padrón de Operadores/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Padrón de Personal/i);
 
     // E) Auditoría & Libro Mayor
     await page.goto('/auditoria');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Libro Mayor & Auditoría/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Rastro Operativo/i);
   });
 
-  test('2. Flujo de Login como PLANIFICADOR (Marco Velásquez)', async ({ page }) => {
+  test('2. Flujo de Login como PLANIFICADOR (Alonso Rivas)', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[name="email"]', 'planner@geoops.pe');
     await page.fill('input[name="password"]', 'planner1234');
@@ -47,10 +47,10 @@ test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
 
     await expect(page).toHaveURL('http://localhost:3000/');
     await expect(page.locator('#contenido')).toBeVisible();
-    await expect(page.getByText(/Marco Velásquez|Planificador/i).first()).toBeVisible();
+    await expect(page.getByText(/Alonso Rivas|Planificador/i).first()).toBeVisible();
   });
 
-  test('3. Flujo de Login como CONSULTA / AUDITOR (Camila Navarro)', async ({ page }) => {
+  test('3. Flujo de Login como CONSULTA / AUDITOR (Diana Flores)', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[name="email"]', 'viewer@geoops.pe');
     await page.fill('input[name="password"]', 'viewer1234');
@@ -58,6 +58,6 @@ test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
 
     await expect(page).toHaveURL('http://localhost:3000/');
     await expect(page.locator('#contenido')).toBeVisible();
-    await expect(page.getByText(/Camila Navarro|Consulta/i).first()).toBeVisible();
+    await expect(page.getByText(/Diana Flores|Consulta/i).first()).toBeVisible();
   });
 });
