@@ -1,138 +1,122 @@
-# GeoOps — Control de equipos mineros y mantenimiento por horómetro
+# GeoOps
 
-[![CI](https://github.com/Bryan-Ternero/geoops/actions/workflows/ci.yml/badge.svg)](https://github.com/Bryan-Ternero/geoops/actions/workflows/ci.yml)
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)
-![License](https://img.shields.io/badge/license-no%20license-lightgrey)
+> Sistema de asignación y mantenimiento de equipos mineros por horómetro.
 
-Aplicación web para asignar equipos (camiones de acarreo, excavadoras, perforadoras) a los
-turnos de una operación minera y controlar cuándo entran a mantenimiento, en reemplazo de las
-hojas de cálculo con las que hoy se lleva ese control.
-
-El sistema impide asignar un equipo bloqueado por horómetro, un operador sin certificación
-vigente o el mismo equipo dos veces en el mismo turno, y cuando rechaza una asignación
-muestra todas las reglas incumplidas, no solo la primera. Además proyecta qué equipos van a
-alcanzar su mantenimiento en los próximos 7 días según los turnos ya programados, para
-anticipar el bloqueo en lugar de descubrirlo al inicio de la guardia.
-
-| | |
-|---|---|
-| **Aplicación** | https://geoops-system.vercel.app |
-| **Decisiones de diseño** | [`DECISIONES.md`](./DECISIONES.md) |
+**Demo en producción:** https://geoops-system.vercel.app
+**Criterio y decisiones de diseño:** [`DECISIONES.md`](./DECISIONES.md)
 
 ---
 
-## Contenido
+## El problema que resuelve
 
-- [Qué demuestra este proyecto](#qué-demuestra-este-proyecto)
-- [Acceso](#acceso)
-- [Funcionalidad](#funcionalidad)
-- [Recorrido de la demo](#recorrido-de-la-demo)
-- [Stack](#stack)
-- [Ejecución local](#ejecución-local)
-- [Despliegue](#despliegue)
-- [Estructura](#estructura)
-- [Licencia](#licencia)
+En una operación minera, camiones de acarreo, excavadoras y perforadoras se reparten entre
+turnos día/noche, cada uno con requisitos de certificación por operador y un umbral de
+mantenimiento por horómetro. Cuando ese proceso se lleva en una hoja de cálculo, nada impide
+que:
 
----
+- se asigne un equipo que ya debería estar en mantenimiento,
+- un operador entre a operar con una certificación vencida,
+- dos personas asignen el mismo equipo al mismo turno al mismo tiempo.
 
-## Qué demuestra este proyecto
-
-Este proyecto pone énfasis en tres aspectos:
-
-- **Reglas de negocio testeables de forma aislada.** `src/core/` no depende de ORM ni de
-   framework: las reglas de asignación, la política de umbrales y la proyección a 7 días se
-   pueden probar como funciones puras.
-- **Transacciones consistentes en operaciones críticas.** El cierre de turno y el registro de
-   mantenimiento ocurren en una sola transacción para evitar estados intermedios inconsistentes.
-- **Trazabilidad operativa.** El sistema conserva el historial del horómetro, las excepciones
-   autorizadas y un `requestId` para rastrear los errores del API.
+GeoOps convierte esas reglas en restricciones que el sistema hace cumplir — a nivel de
+aplicación y, donde el negocio lo exige, a nivel de base de datos — en vez de dejarlas
+libradas a que alguien se acuerde de revisarlas.
 
 ---
 
-## Acceso
+## Ingresar a la demo
 
-| Rol | Usuario | Contraseña | Permisos |
+| Rol | Correo | Contraseña | Alcance |
 |---|---|---|---|
-| Supervisor | `supervisor@geoops.pe` | `supervisor1234` | Todo, incluido autorizar excepciones |
-| Planificador | `planner@geoops.pe` | `planner1234` | Crear turnos y asignaciones, cerrar turnos, registrar mantenimientos |
+| Supervisor | `supervisor@geoops.pe` | `supervisor1234` | Acceso completo, incluida la autorización de excepciones |
+| Planificador | `planner@geoops.pe` | `planner1234` | Turnos, asignaciones, cierres y mantenimientos |
 | Consulta | `viewer@geoops.pe` | `viewer1234` | Solo lectura |
 
----
-
-## Funcionalidad
-
-| Módulo | Qué resuelve |
-|---|---|
-| **Equipos** | Horómetro, estado (`DISPONIBLE / BLOQUEADO / EN MANTENIMIENTO / FUERA DE SERVICIO`) y umbral del próximo servicio. |
-| **Operadores y certificaciones** | Certificación por tipo de equipo con fecha de vencimiento. La vigencia se evalúa contra la fecha del turno, no contra la fecha actual. |
-| **Turnos y asignaciones** | Turno = fecha + jornada (día o noche) + duración. Cada asignación se valida contra las 12 reglas del enunciado. |
-| **Motor de reglas** | Un rechazo devuelve la lista completa de violaciones, cada una con su severidad y qué hacer para resolverla. |
-| **Excepciones con autorización** | Un supervisor puede forzar las reglas que son política de la empresa (equipo bloqueado, certificación vencida) dejando motivo y traza. Las que son imposibilidad física no se pueden forzar. |
-| **Cierre de turno** | Registra las horas reales, las suma al horómetro y bloquea el equipo si cruzó el umbral, todo en una transacción. |
-| **Mantenimiento** | Libera el equipo, calcula el próximo umbral y deja historial con responsable, horómetro y atraso. |
-| **Proyección a 7 días** | Simula el consumo de horas de los turnos programados: qué equipo cruza su umbral, en qué fecha y en qué jornada. |
-| **Auditoría** | Libro mayor del horómetro y registro de excepciones autorizadas. |
+Los datos de ejemplo ya vienen cargados con los casos límite armados (ver más abajo).
 
 ---
 
-## Recorrido de la demo
+## Qué hay dentro
 
-Los datos de ejemplo ya están cargados, con los casos borde armados.
+**Equipos** — código, tipo, horómetro y estado (`DISPONIBLE`, `BLOQUEADO`, `EN
+MANTENIMIENTO`, `FUERA DE SERVICIO`), con el umbral del próximo servicio calculado.
 
-1. **Un rechazo con sus razones.** En *Turnos*, intentar asignar `TAC-103` a Graciela Mamani
-   (`OPR-015`). El sistema identifica el equipo bloqueado y la falta de certificación vigente;
-   la imposibilidad física no puede forzarse.
-2. **Excepción autorizada.** Intentar asignar un equipo bloqueado a un operador habilitado.
-   Un supervisor puede usar *Forzar con autorización*: pide motivo, deja traza en auditoría y
-   crea la asignación en estado **EN RIESGO**. El turno no se puede cerrar mientras existan
-   asignaciones en riesgo sin resolver.
-3. **Bloqueo por horómetro.** Cerrar el turno de hoy. `TAC-102` pasa de 738 a 750 h, alcanza
-   su umbral y queda **BLOQUEADO**; las asignaciones futuras afectadas pasan a **EN RIESGO**
-   con alerta crítica, en la misma transacción.
-4. **Proyección.** En */proyeccion* aparece lo anterior antes de que ocurra: `TAC-102` y
-   `EXC-201` cruzan su umbral dentro de la semana, con la fecha y la jornada exactas.
-5. **Mantenimiento.** Registrar el servicio del equipo bloqueado lo libera, fija el siguiente
-   umbral a partir del anterior (no del horómetro real) y devuelve a activas las asignaciones
-   que estaban en riesgo por ese bloqueo.
-6. **Auditoría.** En */auditoria* está el libro mayor del horómetro, con las horas antes y
-   después de cada movimiento, y las excepciones firmadas.
+**Operadores y certificaciones** — una certificación por tipo de equipo, con vencimiento
+evaluado contra la fecha del turno, no contra la fecha de hoy.
 
----
+**Turnos y asignaciones** — cada intento de asignación pasa por las 12 reglas del enunciado
+antes de crearse.
 
-## Stack
+**Motor de reglas** — un rechazo no dice solo "no se puede": devuelve todas las violaciones
+encontradas, cada una con su severidad y qué haría falta para resolverla.
 
-| Capa | Elección |
-|---|---|
-| Framework (interfaz y API en un despliegue) | Next.js 16 (App Router) + TypeScript |
-| Base de datos | PostgreSQL (Neon) |
-| ORM y migraciones | Prisma 7 con driver adapter `@prisma/adapter-pg` |
-| Autenticación | Auth.js (Credentials) + bcrypt, roles `SUPERVISOR / PLANNER / VIEWER` |
-| Validación | Zod en el borde HTTP; las reglas de negocio, en TypeScript puro |
-| Interfaz | Tailwind CSS 4 |
-| Tests | Vitest: unitarios e integración contra PostgreSQL real; Playwright: flujos E2E |
-| CI | GitHub Actions: lint, typecheck y pruebas unitarias e integración en cada push |
-| Infraestructura | Vercel + Neon, y `docker compose` para levantar todo en local |
+**Excepciones autorizadas** — un supervisor puede forzar una regla de política (no una
+imposibilidad física) dejando motivo y traza; la asignación queda visible como excepción,
+nunca como si nada hubiera pasado.
 
-El porqué de cada elección está en [`DECISIONES.md`](./DECISIONES.md).
+**Cierre de turno** — las horas reales se suman al horómetro y, si cruzan el umbral, el
+equipo se bloquea — todo en una sola transacción.
+
+**Mantenimiento** — libera el equipo, ancla el próximo umbral y guarda historial completo:
+responsable, horómetro, atraso.
+
+**Proyección a 7 días** — no mira el estado actual, simula los turnos ya programados para
+anticipar qué equipo va a cruzar su umbral, cuándo y en qué jornada.
+
+**Auditoría** — libro mayor del horómetro y registro de cada excepción firmada.
 
 ---
 
-## Ejecución local
+## Un recorrido rápido
 
-Con Docker, que además aplica las migraciones y carga los datos de ejemplo:
+1. Intenta asignar `TAC-103` (bloqueado) a Graciela Mamani (sin certificación) en *Turnos*.
+   Vas a ver las dos violaciones a la vez, y ninguna es forzable por ser imposibilidad física.
+2. Ahora intenta asignar un equipo bloqueado a un operador sí habilitado, y usa *Forzar con
+   autorización*. Pide motivo, queda en auditoría, y la asignación se crea como **EN RIESGO**.
+3. Cierra el turno de hoy. `TAC-102` sube de 738 a 750 h, toca su umbral y queda
+   **BLOQUEADO**; cualquier asignación futura suya pasa a **EN RIESGO** en la misma
+   transacción.
+4. Entra a */proyeccion*: ese bloqueo ya aparecía anticipado ahí, junto con `EXC-201`, antes
+   de que ocurriera.
+5. Registra el mantenimiento de `TAC-102`. El equipo se libera, el siguiente umbral se calcula
+   desde el anterior (no desde el horómetro real) y las asignaciones en riesgo vuelven a
+   activarse solas.
+6. Revisa */auditoria* para ver el movimiento completo del horómetro y las excepciones
+   firmadas.
+
+---
+
+## Stack técnico
+
+- **Next.js 16** (App Router) + TypeScript, interfaz y API en el mismo despliegue
+- **PostgreSQL** sobre **Neon**, con **Prisma 7** (`@prisma/adapter-pg`)
+- **Auth.js** (Credentials) + bcrypt — roles `SUPERVISOR`, `PLANNER`, `VIEWER`
+- **Zod** en el borde HTTP; las reglas de negocio viven en TypeScript puro, sin depender de Zod ni de Prisma
+- **Tailwind CSS 4** para la interfaz
+- **Vitest** (unitarios + integración contra Postgres real) y **Playwright** (E2E)
+- **GitHub Actions** — lint, typecheck y tests en cada push
+- **Vercel + Neon** en producción; `docker compose` para levantar todo en local
+
+El razonamiento detrás de cada elección está documentado en [`DECISIONES.md`](./DECISIONES.md).
+
+---
+
+## Levantarlo en tu máquina
+
+### Opción rápida, con Docker
+
+Aplica migraciones y carga los datos de ejemplo automáticamente:
 
 ```bash
-docker compose up --build        # http://localhost:3000
+docker compose up --build
+# http://localhost:3000
 ```
 
-Con Node, contra una base propia:
+### Opción manual, con Node
 
 ```bash
-cp .env.example .env             # completar AUTH_SECRET y las cadenas de conexión
-docker compose up -d db          # PostgreSQL 17 en localhost:5432
+cp .env.example .env         # completar AUTH_SECRET y las cadenas de conexión
+docker compose up -d db      # solo levanta PostgreSQL 17 en localhost:5432
 npm install
 npx prisma migrate deploy
 npm run db:seed
@@ -141,60 +125,58 @@ npm run dev
 
 ### Variables de entorno
 
-| Variable | Para qué |
+| Variable | Uso |
 |---|---|
-| `DATABASE_URL` | Conexión que usa la aplicación. En Neon, la del pooler. |
-| `MIGRATE_DATABASE_URL` | Conexión directa que usan las migraciones. La lee `prisma.config.ts`. |
-| `AUTH_SECRET` | Firma de la sesión (`openssl rand -base64 32`). |
-| `AUTH_URL` | URL pública de la aplicación, incluyendo el esquema. |
+| `DATABASE_URL` | Conexión de la aplicación (en Neon, la del pooler) |
+| `MIGRATE_DATABASE_URL` | Conexión directa para migraciones (la usa `prisma.config.ts`) |
+| `AUTH_SECRET` | Firma de sesión — generar con `openssl rand -base64 32` |
+| `AUTH_URL` | URL pública de la app, con esquema incluido |
 
-### Comandos
+### Scripts disponibles
 
 ```bash
-npm run dev            # desarrollo
-npm run lint           # eslint
-npm run typecheck      # tsc --noEmit
-npm run test           # unitarios: reglas, política de umbrales y proyección
-npm run test:int       # integración: cierre, mantenimiento y concurrencia (requiere base)
-npm run test:e2e       # flujos end to end contra la aplicación local
-npm run db:seed        # datos de ejemplo
+npm run dev          # servidor de desarrollo
+npm run lint          # eslint
+npm run typecheck     # tsc --noEmit
+npm run test           # unitarios: reglas, umbrales, proyección
+npm run test:int      # integración: cierre, mantenimiento, concurrencia (requiere base)
+npm run test:e2e      # flujos end-to-end
+npm run db:seed       # carga los datos de ejemplo
 ```
 
 ---
 
-## Despliegue
+## Cómo está desplegado
 
-La aplicación está preparada para correr en Vercel y la base de datos en Neon (PostgreSQL
-serverless). Una vez conectado el repositorio a Vercel, cada push a `main` podrá desplegar la
-aplicación. Las migraciones pendientes deben ejecutarse con `MIGRATE_DATABASE_URL`; el build
-actual también ejecuta `prisma migrate deploy` antes de compilar. Un workflow programado
-consulta `/api/health` cada 6 horas para que la base no esté suspendida cuando alguien abra la
-demo.
+La aplicación corre en **Vercel** y la base en **Neon** (Postgres serverless). Cada push a
+`main` dispara un despliegue nuevo; el build ejecuta `prisma migrate deploy` antes de
+compilar, y las migraciones directas usan `MIGRATE_DATABASE_URL`. Un workflow programado
+llama a `/api/health` cada 6 horas para que la base no quede suspendida justo cuando alguien
+abre la demo.
 
-Los rechazos y errores del API se registran como una línea JSON con `requestId`, y ese mismo
-identificador se devuelve en la cabecera `x-request-id` de la respuesta, así que con el
-número que ve el usuario se puede ubicar la línea exacta en los logs.
+Cada error del API se registra como una línea JSON con un `requestId`, que también viaja en
+la cabecera `x-request-id` de la respuesta — así el identificador que ve el usuario permite
+ubicar el log exacto.
 
 ---
 
-## Estructura
+## Organización del código
 
 ```
-src/core/        Reglas de negocio en TypeScript puro: sin ORM, sin framework
-src/use-cases/   Casos de uso y transacciones
-app/api/         Endpoints REST
-app/(workspace)/ Interfaz
-prisma/          Esquema, migraciones versionadas y datos de ejemplo
-tests/           Unitarios, integración contra PostgreSQL y flujos E2E
+src/core/        reglas de negocio en TypeScript puro — sin ORM, sin framework
+src/use-cases/   casos de uso y transacciones que orquestan esas reglas
+app/api/         endpoints REST
+app/(workspace)/ interfaz
+prisma/          esquema, migraciones y datos de ejemplo
+tests/           unitarios, integración contra Postgres real y E2E
 ```
 
-`src/core/` y `src/use-cases/` están separados a propósito: el primero contiene las reglas de
-negocio como funciones puras y el segundo las orquesta dentro de transacciones y casos de uso
-concretos. El detalle de esta decisión está en [`DECISIONES.md`](./DECISIONES.md).
+`src/core/` y `src/use-cases/` se mantienen separados a propósito: uno son reglas puras y
+testeables en milisegundos, el otro las orquesta dentro de transacciones reales. Por qué, en
+[`DECISIONES.md`](./DECISIONES.md).
 
 ---
 
 ## Licencia
 
-Este repositorio no declara actualmente una licencia de uso o distribución. El código se
-mantiene como proyecto de evaluación técnica.
+Sin licencia declarada por el momento.
