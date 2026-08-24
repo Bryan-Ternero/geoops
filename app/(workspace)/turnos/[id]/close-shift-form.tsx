@@ -88,7 +88,10 @@ export function CerrarTurnoForm({
               const bloquea = despues >= f.nextMaintenanceHours;
 
               return (
-                <tr key={f.id} className={bloquea ? 'bg-bloqueo-dim' : undefined}>
+                <tr
+                  key={f.id}
+                  className={bloquea ? 'hatch-bloqueo bg-bloqueo-dim' : undefined}
+                >
                   <td className={`${tabla.td} font-mono`}>{f.equipmentCode}</td>
                   <td className={tabla.td}>{f.operatorName}</td>
                   <td className={`${tabla.num} text-muted`}>{formatHoras(f.plannedHours)}</td>

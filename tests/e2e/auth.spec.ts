@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+// los logins bcrypt son CPU-bound: en paralelo total saturen el event loop del server
+// y producen CredentialsSignin espurios (flake verificado en Fase 7)
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Autenticación y Control de Accesos', () => {
   test('debe redirigir al login si el usuario no está autenticado', async ({ page }) => {
     await page.goto('/');

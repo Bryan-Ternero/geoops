@@ -51,7 +51,7 @@ export function DialogConfirm({
         if (e.target === ref.current && !enviando) onCerrar();
       }}
       aria-labelledby="dialog-confirm-titulo"
-      className="w-[min(26rem,calc(100vw-2rem))] border border-line-strong bg-surface p-0 text-ink shadow-2xl shadow-black/50"
+      className="w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-line-strong bg-surface p-0 text-ink shadow-[0_24px_60px_-15px_rgba(35,27,18,0.45)]"
     >
       <div className="border-l-2 border-bloqueo px-5 py-5">
         <div className="flex items-start gap-3">
@@ -62,7 +62,7 @@ export function DialogConfirm({
             <Icon name="alerta" className="size-4.5" />
           </span>
           <div className="min-w-0">
-            <h2 id="dialog-confirm-titulo" className="font-display text-lg font-normal tracking-tight text-ink not-italic">
+            <h2 id="dialog-confirm-titulo" className="font-display text-lg font-medium tracking-tight text-ink">
               {titulo}
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-muted">{descripcion}</p>
@@ -76,7 +76,7 @@ export function DialogConfirm({
             type="button"
             onClick={onCerrar}
             disabled={enviando}
-            className="inline-flex min-h-10 items-center rounded-sm border border-line-strong px-4 text-[13px] font-medium text-muted transition-colors hover:border-copper hover:text-copper disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex min-h-10 items-center rounded-sm border border-line-strong px-4 text-[13px] font-medium text-muted transition-colors hover:border-copper hover:text-copper-texto disabled:pointer-events-none disabled:opacity-40"
           >
             {etiquetaCancelar}
           </button>
@@ -85,7 +85,7 @@ export function DialogConfirm({
             data-confirmar
             onClick={onConfirmar}
             disabled={enviando}
-            className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-bloqueo bg-bloqueo-dim px-4 text-[13px] font-semibold text-bloqueo transition-all duration-150 hover:bg-bloqueo hover:text-ink active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-bloqueo bg-bloqueo-dim px-4 text-[13px] font-semibold text-bloqueo transition-all duration-(--dur-med) hover:bg-bloqueo hover:text-ink active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
           >
             {enviando && (
               <span

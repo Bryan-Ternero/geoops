@@ -11,7 +11,7 @@ test.describe('Despacho de Turnos y Validación de Reglas de Negocio', () => {
 
   test('debe listar las guardias y permitir acceder al detalle de un turno', async ({ page }) => {
     await page.goto('/turnos');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Despacho Operativo/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Guardias & Despacho/i);
 
     // Click on the first shift detail link
     const primerEnlaceTurno = page.locator('tbody tr').first().locator('a').first();

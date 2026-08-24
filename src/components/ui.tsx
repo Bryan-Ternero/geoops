@@ -1,7 +1,9 @@
 /**
- * Design System UI Components
- * GeoOps dark industrial skin: hairline borders, flat surfaces, copper accents,
- * semantic tones with dimmed fills. Sharp corners; radius is reserved for controls.
+ * Design System UI Components — Industrial Precision v2
+ * GeoOps layered stone canvas (#f5f4f2), machined white panels with corner ticks,
+ * copper as the single brand metal, semantic tones with dimmed fills.
+ * Radius carries meaning (xs badge → sm control → md card → lg panel → xl login);
+ * tables, gauge and shell stay at absolute 0.
  */
 import type { ReactNode } from 'react';
 
@@ -49,7 +51,7 @@ export function Badge({ tono, children }: { tono: Tono; children: ReactNode }) {
   const config = TONOS[tono];
   return (
     <span
-      className={`inline-flex items-center border-y border-r border-transparent border-l-[3px] px-2 py-0.5 text-[10px] leading-4 font-bold tracking-[0.08em] whitespace-nowrap uppercase ${config.spine} ${config.chip}`}
+      className={`inline-flex items-center rounded-xs border-y border-r border-transparent border-l-[3px] px-2 py-0.5 text-[10px] leading-4 font-bold tracking-[0.08em] whitespace-nowrap uppercase ${config.spine} ${config.chip}`}
     >
       {children}
     </span>
@@ -66,13 +68,13 @@ export function Encabezado({
   acciones?: ReactNode;
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+    <header className="doble-filete relative mb-8 flex flex-wrap items-end justify-between gap-4 pb-5">
       <div>
         <div className="flex items-center gap-2">
           <span aria-hidden className="inline-block size-1.5 bg-accent" />
           <span className="rotulo">GeoOps | Collpahuasi</span>
         </div>
-        <h1 className="mt-2 font-display text-2xl font-normal tracking-tight text-ink not-italic lg:text-[34px]">
+        <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink lg:text-[34px] lg:font-bold">
           {titulo}
         </h1>
         {descripcion && (
@@ -104,18 +106,18 @@ export function Panel({
   return (
     <section
       id={id}
-      className={`${titulo ? 'panel-ticks' : ''} border border-line bg-surface ${className}`}
+      className={`${titulo ? 'panel-ticks' : ''} rounded-lg border border-line bg-surface ${className}`}
     >
       {titulo && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-subtle px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             {icono && (
-              <div className="flex size-7 shrink-0 items-center justify-center border border-line bg-bg2 text-muted">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-line bg-bg2 text-muted">
                 <Icon name={icono} className="size-4" />
               </div>
             )}
             <div className="min-w-0">
-              <h2 className="font-display text-[15px] font-normal tracking-tight text-ink not-italic">{titulo}</h2>
+              <h2 className="font-display text-[15px] font-medium tracking-tight text-ink">{titulo}</h2>
               {descripcion && <p className="text-xs text-muted">{descripcion}</p>}
             </div>
           </div>
@@ -142,7 +144,7 @@ export function Aviso({
   return (
     <div
       role={tono === 'ok' ? 'status' : undefined}
-      className={`rounded-sm border p-4 text-sm leading-relaxed ${config.panel} ${className}`}
+      className={`aviso-in rounded-md border p-4 text-sm leading-relaxed ${config.panel} ${className}`}
     >
       {titulo && <p className={`font-semibold ${config.titulo}`}>{titulo}</p>}
       {children && <div className={titulo ? 'mt-1.5' : ''}>{children}</div>}
@@ -152,13 +154,16 @@ export function Aviso({
 
 export const boton = {
   primario:
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-accent px-4 py-2 text-[13px] font-semibold tracking-wide text-copper-ink transition-all duration-150 hover:bg-accent-hover active:scale-[0.97] active:bg-copper-down disabled:pointer-events-none disabled:opacity-40',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm bg-accent px-4 py-2 text-[13px] font-semibold tracking-wide text-copper-ink transition-all duration-(--dur-med) hover:bg-accent-hover active:scale-[0.97] active:bg-copper-down disabled:pointer-events-none disabled:opacity-40',
   secundario:
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-line-strong px-4 py-2 text-[13px] font-medium text-ink transition-all duration-150 hover:border-copper hover:text-copper active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-line-strong px-4 py-2 text-[13px] font-medium text-ink transition-all duration-(--dur-med) hover:border-copper hover:text-copper-texto active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
   excepcion:
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-aviso/40 bg-aviso-dim px-4 py-2 text-[13px] font-semibold text-aviso transition-all duration-150 hover:border-aviso active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-aviso/40 bg-aviso-dim px-4 py-2 text-[13px] font-semibold text-aviso transition-all duration-(--dur-med) hover:border-aviso active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
   peligro:
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-bloqueo/60 bg-bloqueo-dim px-4 py-2 text-[13px] font-semibold text-bloqueo transition-all duration-150 hover:border-bloqueo active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-bloqueo/60 bg-bloqueo-dim px-4 py-2 text-[13px] font-semibold text-bloqueo transition-all duration-(--dur-med) hover:border-bloqueo active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+  /* acción compacta dentro de filas de tabla */
+  tabla:
+    'inline-flex min-h-8 items-center justify-center gap-1.5 rounded-sm border border-transparent px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-accent-texto transition-all duration-(--dur-med) hover:border-line-strong hover:bg-canvas-subtle active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
 };
 
 export const campo = {
@@ -222,7 +227,7 @@ export function BarraHorometro({
       <span className="inline-flex items-center gap-2" title={`${Math.round(crudo)}% del umbral`}>
         <span className={`relative h-2 shrink-0 ${ancho} bg-bg2`} role="presentation">
           <span
-            className={`absolute inset-y-0 left-0 ${color} transition-all duration-500`}
+            className={`absolute inset-y-0 left-0 ${color} transition-all duration-(--dur-gauge)`}
             style={{ width: `${porcentaje}%` }}
           />
           {ticks}
@@ -253,7 +258,7 @@ export function BarraHorometro({
       <div className={ancho === 'w-32' ? 'w-full' : ancho}>
         <div className="relative h-2.5 bg-bg2" role="presentation" title={`${Math.round(crudo)}% del umbral`}>
           <div
-            className={`absolute inset-y-0 left-0 ${color} transition-all duration-500`}
+            className={`absolute inset-y-0 left-0 ${color} transition-all duration-(--dur-gauge)`}
             style={{ width: `${porcentaje}%` }}
           />
           {ticks}
@@ -284,7 +289,7 @@ export function BarraHorometro({
       </p>
       <div className="relative mt-3 h-3 bg-bg2" role="presentation" title={`${Math.round(crudo)}% del umbral`}>
         <div
-          className={`absolute inset-y-0 left-0 ${color} transition-all duration-500`}
+          className={`absolute inset-y-0 left-0 ${color} transition-all duration-(--dur-gauge)`}
           style={{ width: `${porcentaje}%` }}
         />
         {ticks}
@@ -299,9 +304,9 @@ export function BarraHorometro({
 }
 
 export const tabla = {
-  wrapper: 'w-full overflow-x-auto',
+  wrapper: 'w-full overflow-x-auto rounded-lg',
   table: 'w-full min-w-[48rem] border-collapse text-sm text-ink',
-  th: 'border-b border-line-strong px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-muted whitespace-nowrap',
+  th: 'border-b border-line-strong bg-bg2 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-muted whitespace-nowrap',
   td: 'border-b border-line-subtle px-4 py-3 align-middle transition-colors hover:bg-canvas-subtle',
   num: 'border-b border-line-subtle px-4 py-3 text-right font-mono text-xs align-middle transition-colors hover:bg-canvas-subtle',
 };
@@ -309,7 +314,7 @@ export const tabla = {
 export function Vacio({ children, accion }: { children: ReactNode; accion?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
-      <div className="flex size-11 items-center justify-center border border-line bg-canvas-subtle text-ink-low">
+      <div className="flex size-11 items-center justify-center rounded-md border border-line bg-canvas-subtle text-ink-low">
         <Icon name="panel" className="size-5" />
       </div>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">{children}</p>

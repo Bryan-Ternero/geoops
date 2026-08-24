@@ -19,14 +19,14 @@ export default function NotFound() {
           404
         </span>
 
-        <div className="panel-ticks relative border border-line bg-surface p-8 sm:p-12">
-          <div className="inline-flex size-14 items-center justify-center border border-line-strong bg-bg2 text-accent">
+        <div className="panel-ticks relative rounded-lg border border-line bg-surface p-8 sm:p-12">
+          <div className="inline-flex size-14 items-center justify-center rounded-sm border border-line-strong bg-bg2 text-accent-texto">
             <Icon name="alerta" className="size-7" />
           </div>
 
-          <span className="rotulo mt-6 block !text-accent">Código de Error 404</span>
+          <span className="rotulo mt-6 block !text-accent-texto">Código de Error 404</span>
 
-          <h1 className="mt-2 font-display text-2xl font-normal tracking-tight text-ink not-italic sm:text-3xl">
+          <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             Recurso o Guardia No Encontrada
           </h1>
 

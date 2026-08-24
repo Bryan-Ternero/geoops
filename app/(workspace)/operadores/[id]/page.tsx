@@ -9,6 +9,7 @@ import {
   formatHoras,
 } from '@/src/components/format';
 import { Aviso, Badge, Encabezado, Panel, Vacio, tabla } from '@/src/components/ui';
+import { Icon } from '@/src/components/icons';
 import { prisma } from '@/src/infrastructure/database/prisma';
 import { formatIsoDate, toIsoDate } from '@/src/use-cases/dates';
 import {
@@ -67,7 +68,11 @@ export default async function OperadorPage({ params }: { params: Promise<{ id: s
             <Badge tono={operador.active ? 'ok' : 'neutro'}>
               {operador.active ? 'Activo' : 'Inactivo'}
             </Badge>
-            <Link href="/operadores" className="text-sm text-muted underline hover:text-accent">
+            <Link
+              href="/operadores"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-(--dur-med) hover:text-accent"
+            >
+              <Icon name="flecha" className="size-3.5 rotate-180" />
               Volver a operadores
             </Link>
           </div>
@@ -82,7 +87,7 @@ export default async function OperadorPage({ params }: { params: Promise<{ id: s
         </Aviso>
       )}
 
-      <dl className="mb-6 grid grid-cols-2 border border-line bg-surface sm:grid-cols-4">
+      <dl className="mb-6 grid grid-cols-2 overflow-hidden rounded-lg border border-line bg-surface sm:grid-cols-4">
         {[
           { t: 'Equipos que puede operar', v: String(habilitados.length) },
           { t: 'Certificaciones registradas', v: String(operador.certifications.length) },

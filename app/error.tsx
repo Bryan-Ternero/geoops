@@ -28,14 +28,14 @@ export default function ErrorPage({
         500
       </span>
 
-      <div className="panel-ticks relative mx-auto max-w-lg border border-line bg-surface p-8 sm:p-12">
-        <div className="inline-flex size-14 items-center justify-center border border-bloqueo/30 bg-bloqueo-dim text-bloqueo">
+      <div className="panel-ticks relative mx-auto max-w-lg rounded-lg border border-line bg-surface p-8 sm:p-12">
+        <div className="inline-flex size-14 items-center justify-center rounded-sm border border-bloqueo/30 bg-bloqueo-dim text-bloqueo">
           <Icon name="alerta" className="size-7" />
         </div>
 
         <span className="rotulo mt-6 block !text-bloqueo">Interrupción del Servicio</span>
 
-        <h1 className="mt-2 font-display text-2xl font-normal tracking-tight text-ink not-italic sm:text-3xl">
+        <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
           Error en la Operación Solicitada
         </h1>
 

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { ESTADO_TURNO, JORNADA, diasHasta, formatHoras } from '@/src/components/format';
 import { Icon } from '@/src/components/icons';
 import { BotonEnviar } from '@/src/components/submit-button';
-import { Aviso, Badge, Encabezado, Panel, Vacio, campo, tabla } from '@/src/components/ui';
+import { Aviso, Badge, Encabezado, Panel, Vacio, boton, campo, tabla } from '@/src/components/ui';
 import { auth, requireRole } from '@/src/auth';
 import { prisma } from '@/src/infrastructure/database/prisma';
 import type { Journey } from '@/src/core/types';
@@ -76,15 +76,15 @@ export default async function TurnosPage({
   return (
     <div className="space-y-8">
       <Encabezado
-        titulo="Despacho Operativo & Matriz de Guardias"
-        descripcion="Programación de turnos por fecha y jornada operativa. La duración planificada define el límite de horómetro y control de horas reales al cierre."
+        titulo="Guardias & Despacho"
+        descripcion="Programación por fecha y jornada operativa; la duración planificada fija el techo de horómetro y el control de horas reales al cierre."
       />
 
       {tienePermisoCrear && (
         <Panel
           icono="turnos"
-          titulo="Apertura de Nueva Guardia Operativa"
-          descripcion="Defina los parámetros del turno para habilitar la asignación de operadores y maquinaria"
+          titulo="Apertura de Guardia"
+          descripcion="Parámetros del turno que habilita la asignación de operadores y maquinaria"
         >
           <form action={procesarCreacionTurno} className="flex flex-wrap items-end gap-4 p-5">
             <label className="block min-w-[10rem]">
@@ -134,7 +134,7 @@ export default async function TurnosPage({
 
       <Panel
         icono="turnos"
-        titulo="Registro Histórico & Guardias Activas"
+        titulo="Registro de Guardias"
         descripcion={`${listadoTurnos.length} guardias registradas · ${guardiasAbiertas} en planificación`}
       >
         {listadoTurnos.length === 0 ? (
@@ -165,7 +165,7 @@ export default async function TurnosPage({
                       <td className={`${tabla.td} whitespace-nowrap`}>
                         <Link
                           href={`/turnos/${t.id}`}
-                          className="font-mono font-semibold text-ink hover:text-accent"
+                          className="font-mono font-semibold text-ink hover:text-accent-texto"
                         >
                           {formatIsoDate(toIsoDate(t.date))}
                         </Link>
@@ -184,7 +184,7 @@ export default async function TurnosPage({
                       </td>
                       <td className={`${tabla.td} max-w-md`}>
                         {asignacionesValidas.length === 0 ? (
-                          <span className="text-xs text-ink-low italic">Sin asignaciones</span>
+                          <span className="text-xs text-muted">Sin asignaciones</span>
                         ) : (
                           <>
                             <div className="flex items-center gap-2">
@@ -204,10 +204,7 @@ export default async function TurnosPage({
                         )}
                       </td>
                       <td className={tabla.td}>
-                        <Link
-                          href={`/turnos/${t.id}`}
-                          className="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-copper hover:text-copper"
-                        >
+                        <Link href={`/turnos/${t.id}`} className={boton.tabla}>
                           {t.status === 'PLANNED' ? 'Despachar / Cerrar' : 'Ver Matriz'}
                           <Icon name="flecha" className="size-3.5" />
                         </Link>

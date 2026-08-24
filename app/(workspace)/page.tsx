@@ -1,6 +1,12 @@
 import Link from 'next/link';
 
+import type { ReactNode } from 'react';
+
+import { AlertBand } from '@/src/components/alert-band';
+import { AlertCard } from '@/src/components/alert-card';
 import { DisponibilidadPorDia } from '@/src/components/charts';
+import { KpiCard } from '@/src/components/kpi-card';
+import { StatusCard } from '@/src/components/status-card';
 import { Icon, type NombreIcono } from '@/src/components/icons';
 import { Badge, BarraHorometro, Encabezado, Panel, Vacio, boton, tabla } from '@/src/components/ui';
 import {
@@ -31,6 +37,16 @@ function haceCuanto(fecha: Date): string {
   const horas = Math.floor(min / 60);
   if (horas < 24) return `Hace ${horas}h`;
   return `Hace ${Math.floor(horas / 24)}d`;
+}
+
+/** microlabel mono de nivel operacional (decorativo; la sección lleva aria-label) */
+function Nivel({ children }: { children: ReactNode }) {
+  return (
+    <p aria-hidden className="rotulo mb-3 flex items-center gap-2">
+      <span className="h-px w-4 bg-line-strong" />
+      {children}
+    </p>
+  );
 }
 
 export default async function TableroPage() {
@@ -96,231 +112,246 @@ export default async function TableroPage() {
     totalRef?: number;
     icono: NombreIcono;
     href: string;
-    alerta: boolean;
     acento: string;
   }[] = [
     {
-      titulo: 'Maquinaria Operativa Disponible',
-      subtitulo: 'Unidades listas para ser asignadas a guardia',
+      titulo: 'Maquinaria Operativa',
+      subtitulo: `${flotaEquipos.length} unidades en el parque · listas para asignación`,
       valor: desgloseEstados.AVAILABLE ?? 0,
       totalRef: flotaEquipos.length,
       icono: 'equipos',
       href: '/equipos',
-      alerta: false,
-      acento: 'border-ok/30 bg-ok-dim text-ok',
+      acento: 'bg-ok-dim text-ok',
     },
     {
-      titulo: 'Unidades en Taller / Servicio',
-      subtitulo: 'Requieren mantenimiento correctivo o preventivo',
+      titulo: 'En Taller / Servicio',
+      subtitulo: 'Detenidas por mantenimiento preventivo o correctivo',
       valor: unidadesDetenidas,
       icono: 'bloqueado',
       href: '/equipos',
-      alerta: unidadesDetenidas > 0,
-      acento: 'border-bloqueo/30 bg-bloqueo-dim text-bloqueo',
+      acento: 'bg-bloqueo-dim text-bloqueo',
     },
     {
-      titulo: 'Guardias en Planificación',
+      titulo: 'Guardias Planificadas',
       subtitulo: 'Jornadas programadas pendientes de cierre',
       valor: turnosPlanificados,
       icono: 'turnos',
       href: '/turnos',
-      alerta: false,
-      acento: 'border-taller/30 bg-taller-dim text-taller',
+      acento: 'bg-taller-dim text-taller',
     },
     {
-      titulo: 'Umbral Crítico en Próximos 7 Días',
-      subtitulo: 'Proyección de mantenimiento inminente',
+      titulo: 'Umbral Crítico · 7 Días',
+      subtitulo: 'Proyección de cruces de umbral inminentes',
       valor: unidadesEnRiesgoProyeccion,
       icono: 'proyeccion',
       href: '/proyeccion',
-      alerta: unidadesEnRiesgoProyeccion > 0,
-      acento: 'border-aviso/30 bg-aviso-dim text-aviso',
+      acento: 'bg-aviso-dim text-aviso',
     },
   ];
 
   return (
-    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start xl:gap-6">
-      <div className="min-w-0 space-y-8">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+      {/* ── Columna principal: tiers CRÍTICO → OPERACIÓN → REFERENCIA ── */}
+      <div className="min-w-0 space-y-10">
         <Encabezado
-          titulo="Panel de Control Operativo"
-          descripcion="Telemetría de horómetros en tiempo real, validación multi-regla de asignaciones a guardia y motor de mantenimiento predictivo a 7 días."
+          titulo="Panel de Control"
+          descripcion="Telemetría de horómetros, despacho validado multi-regla y predictivo de mantenimiento a 7 días."
         />
 
-      {/* KPI Metrics Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {metricasResumen.map((kpi) => (
-          <Link
-            key={kpi.titulo}
-            href={kpi.href}
-            className="group border border-line bg-surface p-5 transition-colors duration-200 hover:border-line-strong"
-          >
-            <div className="flex items-center justify-between">
-              <span className="rotulo">{kpi.titulo}</span>
-              <div
-                aria-hidden
-                className={`flex size-9 items-center justify-center border ${kpi.acento}`}
-              >
-                <Icon name={kpi.icono} className="size-4.5" />
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="num text-3xl font-semibold tracking-tight text-ink">
-                {kpi.valor}
-              </span>
-              {kpi.totalRef !== undefined && (
-                <span className="num text-xs text-muted">
-                  de {kpi.totalRef} unidades
-                </span>
-              )}
-            </div>
-
-            <p className="mt-1 text-xs text-muted">{kpi.subtitulo}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* Projection Chart & Upcoming Shifts */}
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-        <Panel
-          icono="proyeccion"
-          titulo="Curva Predictiva de Disponibilidad de Maquinaria (7 Días)"
-          descripcion="Simulación algorítmica de horas acumuladas basada en guardias programadas"
-          acciones={
-            <Link
-              href="/proyeccion"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent transition-colors hover:text-accent-hover"
-            >
-              Matriz de Mantenimiento Predictivo
-              <Icon name="flecha" className="size-3.5" />
-            </Link>
-          }
+        {/* TIER 01 · CRÍTICO */}
+        <section
+          aria-label="Nivel crítico"
+          className="motion-safe:animate-[aviso-in_180ms_var(--ease-out-quart)_both]"
         >
-          <div className="p-4">
-            <DisponibilidadPorDia dias={curvaDisponibilidad} />
+          <Nivel>01 · CRÍTICO</Nivel>
+          <AlertBand criticos={totalCriticas} bloqueados={desgloseEstados.BLOCKED ?? 0} />
+        </section>
+
+        {/* TIER 02 · OPERACIÓN */}
+        <section
+          aria-label="Nivel operativo"
+          className="space-y-6 motion-safe:animate-[aviso-in_180ms_var(--ease-out-quart)_80ms_both]"
+        >
+          <Nivel>02 · OPERACIÓN</Nivel>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {metricasResumen.map((kpi) => (
+              <KpiCard
+                key={kpi.titulo}
+                href={kpi.href}
+                rotulo={kpi.titulo}
+                valor={
+                  <>
+                    {kpi.valor}
+                    {kpi.totalRef !== undefined && (
+                      <span className="num ml-1.5 align-baseline text-xs font-normal text-muted">
+                        / {kpi.totalRef}
+                      </span>
+                    )}
+                  </>
+                }
+                subtitulo={kpi.subtitulo}
+                icono={kpi.icono}
+                chipClase={kpi.acento}
+              />
+            ))}
           </div>
-        </Panel>
 
-        <Panel
-          icono="turnos"
-          titulo="Próximas Guardias Programadas"
-          descripcion="Despacho de asignaciones y cierre de turno"
-          acciones={
-            <Link
-              href="/turnos"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent transition-colors hover:text-accent-hover"
-            >
-              Ver Todas
-              <Icon name="flecha" className="size-3.5" />
-            </Link>
-          }
-        >
-          {turnosOperativos.length === 0 ? (
-            <Vacio
-              accion={
+          <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+            {/* célula héroe: raised + ticks plenos */}
+            <Panel
+              icono="proyeccion"
+              titulo="Curva Predictiva de Disponibilidad · 7 Días"
+              descripcion="Simulación de horas acumuladas sobre guardias programadas"
+              className="ticks-full border-line-strong shadow-[0_8px_24px_rgba(46,36,22,0.08)]"
+              acciones={
                 <Link
-                  href="/turnos"
-                  className={boton.primario}
+                  href="/proyeccion"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent-texto transition-colors duration-(--dur-med) hover:text-accent-hover"
                 >
-                  <Icon name="mas" className="size-4" />
-                  Programar Guardia
+                  Matriz Predictiva
+                  <Icon name="flecha" className="size-3.5" />
                 </Link>
               }
             >
-              No existen guardias programadas en la ventana actual.
-            </Vacio>
-          ) : (
-            <ul className="divide-y divide-line-subtle">
-              {turnosOperativos.map((turno) => (
-                <li key={turno.id}>
-                  <Link
-                    href={`/turnos/${turno.id}`}
-                    className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-canvas-subtle"
-                  >
-                    <div>
-                      <span className="block font-mono text-sm font-semibold text-ink">
-                        {formatIsoDate(toIsoDate(turno.date))}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-muted">
-                        Jornada {JORNADA[turno.journey]} · {formatHoras(turno.plannedHours)} h programadas ·{' '}
-                        {turno._count.assignments} activos asignados
-                      </span>
-                    </div>
-                    <Badge tono={ESTADO_TURNO[turno.status].tono}>
-                      {ESTADO_TURNO[turno.status].label}
-                    </Badge>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
+              <div className="p-5">
+                <DisponibilidadPorDia dias={curvaDisponibilidad} />
+              </div>
+            </Panel>
 
-      {/* Telemetry and Fleet Status Table */}
-      <Panel
-          icono="equipos"
-          titulo="Parque de Maquinaria Pesada & Telemetría de Horómetros"
-          descripcion="Horómetro acumulado actual vs. umbral de mantenimiento preventivo"
-          acciones={
-            <Link
-              href="/equipos"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent transition-colors hover:text-accent-hover"
+            <Panel
+              icono="turnos"
+              titulo="Próximas Guardias"
+              descripcion="Despacho y cierre de turno"
+              acciones={
+                <Link
+                  href="/turnos"
+                  className={boton.tabla}
+                >
+                  Ver Todas
+                  <Icon name="flecha" className="size-3.5" />
+                </Link>
+              }
             >
-              Inventario Completo de Maquinaria
-              <Icon name="flecha" className="size-3.5" />
-            </Link>
-          }
-        >
-        <div className={tabla.wrapper}>
-          <table className={tabla.table}>
-            <thead>
-              <tr>
-                <th scope="col" className={tabla.th}>Código Unidad</th>
-                <th scope="col" className={tabla.th}>Familia / Tipo</th>
-                <th scope="col" className={tabla.th}>Estado Operativo</th>
-                <th scope="col" className={tabla.th}>Consumo de Ciclo</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Horómetro Real</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Umbral Límite</th>
-              </tr>
-            </thead>
-            <tbody>
-              {flotaEquipos.map((equipo) => (
-                <tr key={equipo.id}>
-                  <td className={tabla.td}>
-                    <Link
-                      href={`/equipos/${equipo.id}`}
-                      className="font-mono font-semibold text-ink transition-colors hover:text-accent"
-                    >
-                      {equipo.code}
+              {turnosOperativos.length === 0 ? (
+                <Vacio
+                  accion={
+                    <Link href="/turnos" className={boton.primario}>
+                      <Icon name="mas" className="size-4" />
+                      Programar Guardia
                     </Link>
-                  </td>
-                  <td className={`${tabla.td} font-medium text-muted`}>{equipo.type.name}</td>
-                  <td className={tabla.td}>
-                    <Badge tono={ESTADO_EQUIPO[equipo.status].tono}>
-                      {ESTADO_EQUIPO[equipo.status].label}
-                    </Badge>
-                  </td>
-                  <td className={tabla.td}>
-                    <BarraHorometro
-                      actual={Number(equipo.currentHours)}
-                      umbral={Number(equipo.nextMaintenanceHours)}
-                    />
-                  </td>
-                  <td className={tabla.num}>{formatHoras(equipo.currentHours)} h</td>
-                  <td className={`${tabla.num} text-muted`}>
-                    {formatHoras(equipo.nextMaintenanceHours)} h
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
+                  }
+                >
+                  No existen guardias programadas en la ventana actual.
+                </Vacio>
+              ) : (
+                <ul className="space-y-2 p-3">
+                  {turnosOperativos.map((turno) => {
+                    const horasHasta = Math.round(
+                      (turno.date.getTime() - tiempoActual.getTime()) / 3_600_000,
+                    );
+                    const relativo =
+                      horasHasta <= 0 ? 'en curso' : horasHasta < 48 ? `inicia en ${horasHasta} h` : '';
+                    return (
+                      <li key={turno.id}>
+                        <StatusCard
+                          href={`/turnos/${turno.id}`}
+                          codigo={formatIsoDate(toIsoDate(turno.date))}
+                          badge={
+                            <Badge tono={ESTADO_TURNO[turno.status].tono}>
+                              {ESTADO_TURNO[turno.status].label}
+                            </Badge>
+                          }
+                          detalle={
+                            <>
+                              Jornada {JORNADA[turno.journey]} ·{' '}
+                              {formatHoras(turno.plannedHours)} h programadas ·{' '}
+                              {turno._count.assignments} activos
+                              {relativo && <> · {relativo}</>}
+                            </>
+                          }
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Panel>
+          </div>
+        </section>
+
+        {/* TIER 03 · REFERENCIA */}
+        <section
+          aria-label="Nivel de referencia"
+          className="motion-safe:animate-[aviso-in_180ms_var(--ease-out-quart)_160ms_both]"
+        >
+          <Nivel>03 · REFERENCIA</Nivel>
+
+          <Panel
+            icono="equipos"
+            titulo="Parque de Maquinaria & Telemetría"
+            descripcion="Horómetro acumulado vs. umbral de mantenimiento preventivo"
+            acciones={
+              <Link href="/equipos" className={boton.tabla}>
+                Inventario Completo
+                <Icon name="flecha" className="size-3.5" />
+              </Link>
+            }
+          >
+            <div className={tabla.wrapper}>
+              <table className={tabla.table}>
+                <thead>
+                  <tr>
+                    <th scope="col" className={tabla.th}>Código Unidad</th>
+                    <th scope="col" className={tabla.th}>Familia / Tipo</th>
+                    <th scope="col" className={tabla.th}>Estado Operativo</th>
+                    <th scope="col" className={tabla.th}>Consumo de Ciclo</th>
+                    <th scope="col" className={`${tabla.th} text-right`}>Horómetro Real</th>
+                    <th scope="col" className={`${tabla.th} text-right`}>Umbral Límite</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {flotaEquipos.map((equipo) => (
+                    <tr key={equipo.id} className={equipo.status === 'BLOCKED' ? 'hatch-bloqueo' : ''}>
+                      <td className={tabla.td}>
+                        <Link
+                          href={`/equipos/${equipo.id}`}
+                          className="font-mono font-semibold text-ink transition-colors duration-(--dur-med) hover:text-accent-texto"
+                        >
+                          {equipo.code}
+                        </Link>
+                      </td>
+                      <td className={`${tabla.td} font-medium text-muted`}>{equipo.type.name}</td>
+                      <td className={tabla.td}>
+                        <Badge tono={ESTADO_EQUIPO[equipo.status].tono}>
+                          {ESTADO_EQUIPO[equipo.status].label}
+                        </Badge>
+                      </td>
+                      <td className={tabla.td}>
+                        <BarraHorometro
+                          actual={Number(equipo.currentHours)}
+                          umbral={Number(equipo.nextMaintenanceHours)}
+                        />
+                      </td>
+                      <td className={tabla.num}>{formatHoras(equipo.currentHours)} h</td>
+                      <td className={`${tabla.num} text-muted`}>
+                        {formatHoras(equipo.nextMaintenanceHours)} h
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        </section>
       </div>
 
-      {/* Action Center: riel derecho de eventos que bloquean el despacho */}
-      <aside className="mt-8 xl:sticky xl:top-6 xl:mt-0">
+      {/* ── Riel crítico: Action Center ── */}
+      <aside className="mt-2 xl:sticky xl:top-6 xl:mt-9" aria-label="Centro de alertas críticas">
+        <p aria-hidden className="rotulo mb-3 hidden items-center gap-2 xl:flex">
+          <span className="h-px w-4 bg-bloqueo/50" />
+          CRÍTICO · ACCIONES
+        </p>
         <Panel
           icono="alerta"
           titulo="Action Center"
@@ -333,7 +364,7 @@ export default async function TableroPage() {
         >
           {alertasOrdenadas.length === 0 ? (
             <div className="flex flex-col items-center px-4 py-10 text-center">
-              <div className="flex size-11 items-center justify-center border border-line bg-ok-dim text-ok">
+              <div className="flex size-11 items-center justify-center rounded-md border border-line bg-ok-dim text-ok">
                 <Icon name="visto" className="size-5" />
               </div>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
@@ -345,27 +376,17 @@ export default async function TableroPage() {
               {alertasOrdenadas.map((alerta) => {
                 const cfg = ALERTA_CONFIG[alerta.type];
                 return (
-                  <li key={alerta.id} className="border border-line bg-surface p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge tono={alerta.severity === 'CRITICAL' ? 'bloqueo' : 'aviso'}>
-                        {cfg?.label ?? alerta.type}
-                      </Badge>
-                      <span className="num shrink-0 text-[11px] whitespace-nowrap text-ink-low">
-                        {haceCuanto(alerta.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
-                      {alerta.message}
-                    </p>
-                    {alerta.equipment && (
-                      <Link
-                        href={`/equipos/${alerta.equipmentId}`}
-                        className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-accent transition-colors hover:text-accent-hover"
-                      >
-                        Inspeccionar {alerta.equipment.code}
-                        <Icon name="flecha" className="size-3.5" />
-                      </Link>
-                    )}
+                  <li key={alerta.id}>
+                    <AlertCard
+                      severidad={alerta.severity === 'CRITICAL' ? 'bloqueo' : 'aviso'}
+                      tipo={cfg?.label ?? alerta.type}
+                      mensaje={alerta.message}
+                      haceCuanto={haceCuanto(alerta.createdAt)}
+                      accionHref={alerta.equipment ? `/equipos/${alerta.equipmentId}` : undefined}
+                      accionLabel={<>Inspeccionar {alerta.equipment?.code}</>}
+                      critico={alerta.severity === 'CRITICAL'}
+                      className="w-full"
+                    />
                   </li>
                 );
               })}

@@ -35,11 +35,11 @@ export function Modal({
         if (e.target === ref.current) onCerrar();
       }}
       aria-labelledby="modal-titulo"
-      className="w-[min(38rem,calc(100vw-2rem))] border border-line-strong bg-surface p-0 text-ink shadow-2xl shadow-black/50 overflow-hidden"
+      className="w-[min(38rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-line-strong bg-surface p-0 text-ink shadow-[0_24px_60px_-15px_rgba(35,27,18,0.45)]"
     >
-      <div className="flex items-start justify-between gap-4 border-b border-line-subtle px-5 py-4">
+      <div className="flex items-start justify-between gap-4 border-b border-line-subtle bg-bg2 px-5 py-4">
         <div>
-          <h2 id="modal-titulo" className="font-display text-lg font-normal tracking-tight text-ink not-italic">
+          <h2 id="modal-titulo" className="font-display text-lg font-medium tracking-tight text-ink">
             {titulo}
           </h2>
           {descripcion && <p className="mt-1 text-sm text-muted">{descripcion}</p>}
@@ -49,7 +49,7 @@ export function Modal({
           type="button"
           onClick={onCerrar}
           aria-label="Cerrar"
-          className="flex size-8 shrink-0 items-center justify-center border border-line text-muted transition-colors hover:border-copper hover:text-copper"
+          className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-line bg-surface text-muted transition-colors duration-(--dur-med) hover:border-copper hover:text-copper-texto"
         >
           <Icon name="cerrar" className="size-4" />
         </button>

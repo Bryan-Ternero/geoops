@@ -66,7 +66,11 @@ export default async function EquipoPage({ params }: { params: Promise<{ id: str
             <Badge tono={ESTADO_EQUIPO[equipo.status].tono}>
               {ESTADO_EQUIPO[equipo.status].label}
             </Badge>
-            <Link href="/equipos" className="text-sm text-muted underline hover:text-accent">
+            <Link
+              href="/equipos"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-(--dur-med) hover:text-accent"
+            >
+              <Icon name="flecha" className="size-3.5 rotate-180" />
               Volver a equipos
             </Link>
           </div>

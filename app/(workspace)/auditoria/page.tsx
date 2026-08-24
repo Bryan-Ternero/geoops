@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { JORNADA, formatHoras } from '@/src/components/format';
 import { Badge, Encabezado, Panel, Vacio, tabla } from '@/src/components/ui';
+import { KpiCard } from '@/src/components/kpi-card';
 import type { Violation } from '@/src/core/rules/violation';
 import { prisma } from '@/src/infrastructure/database/prisma';
 import { formatIsoDate, toIsoDate, toOperationalDate } from '@/src/use-cases/dates';
@@ -49,31 +50,27 @@ export default async function AuditoriaPage() {
   return (
     <div className="space-y-8">
       <Encabezado
-        titulo="Rastro Operativo & Libro Mayor de Horometría"
-        descripcion="Inmutabilidad contable de cada hora acumulada y trazabilidad completa de excepciones autorizadas por supervisión."
+        titulo="Rastro Operativo"
+        descripcion="Libro mayor de horómetro y trazabilidad de excepciones autorizadas por supervisión."
       />
 
       {/* Audit Stats Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {kpisAuditoria.map((kpi) => (
-          <div
+          <KpiCard
             key={kpi.label}
-            className="border border-line bg-surface p-5"
-          >
-            <span className="rotulo">{kpi.label}</span>
-            <div className="mt-2 num text-3xl font-semibold tracking-tight text-ink">
-              {kpi.valor}
-            </div>
-            <span className="mt-1 block text-xs text-muted">{kpi.sub}</span>
-          </div>
+            rotulo={kpi.label}
+            valor={kpi.valor}
+            subtitulo={kpi.sub}
+          />
         ))}
       </div>
 
       {/* Authorized Overrides */}
       <Panel
         icono="bloqueado"
-        titulo={`Registro de Excepciones Operativas (${excepcionesFirmadas.length})`}
-        descripcion="Auditoría de despachos forzados bajo responsabilidad de supervisor"
+        titulo={`Excepciones firmadas (${excepcionesFirmadas.length})`}
+        descripcion="Despachos forzados bajo responsabilidad de supervisor"
       >
         {excepcionesFirmadas.length === 0 ? (
           <Vacio>
@@ -100,17 +97,17 @@ export default async function AuditoriaPage() {
 
                     <Link
                       href={`/turnos/${o.assignment.shiftId}`}
-                      className="text-xs font-semibold text-accent hover:text-accent-hover underline"
+                      className="text-xs font-semibold text-accent-texto hover:text-accent-hover underline"
                     >
                       Ver Guardia
                     </Link>
                   </div>
 
-                  <div className="mt-3 border border-line bg-canvas-subtle p-3.5 text-xs text-ink">
+                  <div className="mt-3 rounded-md border border-line bg-canvas-subtle p-3.5 text-xs text-ink">
                     <p className="font-medium">
                       <span className="text-muted font-normal">Autorizado por:</span>{' '}
                       <strong className="text-ink">{o.authorizedBy.name}</strong>{' '}
-                      <span className="text-ink-low">
+                      <span className="text-muted">
                         ({formatIsoDate(toOperationalDate(o.createdAt))})
                       </span>
                     </p>
@@ -119,9 +116,7 @@ export default async function AuditoriaPage() {
 
                   {reglasDispensadas.length > 0 && (
                     <div className="mt-3 space-y-1">
-                      <span className="text-[11px] font-bold text-ink-low uppercase tracking-wider">
-                        Reglas de negocio dispensadas:
-                      </span>
+                      <span className="rotulo">Reglas de negocio dispensadas</span>
                       <ul className="space-y-1 text-xs text-muted">
                         {reglasDispensadas.map((v) => (
                           <li key={v.code} className="flex items-start gap-2">
@@ -142,8 +137,8 @@ export default async function AuditoriaPage() {
       {/* Hourmeter Ledger */}
       <Panel
         icono="auditoria"
-        titulo="Libro Mayor de Asientos de Horómetro"
-        descripcion="Auditoría cronológica inmutable de variaciones de horómetro"
+        titulo="Libro mayor del horómetro"
+        descripcion="Asientos cronológicos e inmutables de cada variación"
       >
         {historialMovimientos.length === 0 ? (
           <Vacio>Sin movimientos registrados en el libro mayor.</Vacio>
@@ -152,13 +147,13 @@ export default async function AuditoriaPage() {
             <table className={tabla.table}>
               <thead>
                 <tr>
-                  <th scope="col" className={tabla.th}>Fecha Asiento</th>
-                  <th scope="col" className={tabla.th}>Código Unidad</th>
-                  <th scope="col" className={tabla.th}>Origen del Asiento</th>
-                  <th scope="col" className={`${tabla.th} text-right`}>Saldo Inicial</th>
-                  <th scope="col" className={`${tabla.th} text-right`}>Delta Horas</th>
-                  <th scope="col" className={`${tabla.th} text-right`}>Saldo Final</th>
-                  <th scope="col" className={tabla.th}>Glosa / Justificación</th>
+                  <th scope="col" className={tabla.th}>Fecha</th>
+                  <th scope="col" className={tabla.th}>Unidad</th>
+                  <th scope="col" className={tabla.th}>Origen</th>
+                  <th scope="col" className={`${tabla.th} text-right`}>Antes</th>
+                  <th scope="col" className={`${tabla.th} text-right`}>Delta</th>
+                  <th scope="col" className={`${tabla.th} text-right`}>Después</th>
+                  <th scope="col" className={tabla.th}>Glosa</th>
                 </tr>
               </thead>
               <tbody>
@@ -170,7 +165,7 @@ export default async function AuditoriaPage() {
                     <td className={tabla.td}>
                       <Link
                         href={`/equipos/${h.equipmentId}`}
-                        className="font-mono font-semibold text-ink hover:text-accent"
+                        className="font-mono font-semibold text-ink hover:text-accent-texto"
                       >
                         {h.equipment.code}
                       </Link>
@@ -178,7 +173,7 @@ export default async function AuditoriaPage() {
                     <td className={`${tabla.td} font-medium text-ink`}>
                       {ORIGEN_EVENTO[h.source] ?? h.source}
                     </td>
-                    <td className={`${tabla.num} text-ink-low`}>{formatHoras(h.hoursBefore)} h</td>
+                    <td className={`${tabla.num} text-muted`}>{formatHoras(h.hoursBefore)} h</td>
                     <td className={`${tabla.num} font-semibold text-ok`}>
                       +{formatHoras(h.hoursDelta)} h
                     </td>

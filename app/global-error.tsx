@@ -27,7 +27,7 @@ export default function GlobalError({
       >
         <div
           className="relative mx-auto max-w-md p-8"
-          style={{ border: '1px solid #272a2f', background: '#1b1e22' }}
+          style={{ border: '1px solid #272a2f', background: '#1b1e22', borderRadius: 10 }}
         >
           <span
             aria-hidden
@@ -50,7 +50,7 @@ export default function GlobalError({
 
           <div
             className="inline-flex size-14 items-center justify-center text-[#ea6666]"
-            style={{ border: '1px solid rgba(234,102,102,0.3)', background: 'rgba(234,102,102,0.09)' }}
+            style={{ border: '1px solid rgba(234,102,102,0.3)', background: 'rgba(234,102,102,0.09)', borderRadius: 5 }}
           >
             <Icon name="alerta" className="size-7" />
           </div>

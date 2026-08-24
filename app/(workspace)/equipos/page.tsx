@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { auth } from '@/src/auth';
 import { ESTADO_EQUIPO, formatHoras } from '@/src/components/format';
 import { Aviso, Badge, BarraHorometro, Encabezado, Panel, tabla } from '@/src/components/ui';
+import { KpiCard } from '@/src/components/kpi-card';
 import { prisma } from '@/src/infrastructure/database/prisma';
 import type { EquipmentStatus } from '@/src/core/types';
 import { NuevoEquipo } from './new-equipment-modal';
@@ -40,8 +41,8 @@ export default async function EquiposPage() {
   return (
     <div className="space-y-8">
       <Encabezado
-        titulo="Parque de Maquinaria Pesada & Telemetría en Tiempo Real"
-        descripcion="Monitoreo de horómetros acumulados, umbrales de servicio e historial de mantenimiento por unidad minera."
+        titulo="Maquinaria Pesada"
+        descripcion="Horómetros acumulados, umbrales de servicio e historial de mantenimiento por unidad."
         acciones={
           puedeModificar ? (
             <NuevoEquipo
@@ -59,16 +60,12 @@ export default async function EquiposPage() {
       {/* Fleet Status Metrics */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {ESTADOS_FLOTA.map((s) => (
-          <div
+          <KpiCard
             key={s}
-            className="border border-line bg-surface p-5"
-          >
-            <span className="rotulo">{ESTADO_EQUIPO[s].label}</span>
-            <div className="mt-2 num text-3xl font-semibold tracking-tight text-ink">
-              {conteoPorEstado[s] ?? 0}
-            </div>
-            <span className="mt-1 block text-xs text-muted">unidades activas</span>
-          </div>
+            rotulo={ESTADO_EQUIPO[s].label}
+            valor={conteoPorEstado[s] ?? 0}
+            subtitulo="unidades activas"
+          />
         ))}
       </div>
 
@@ -92,21 +89,21 @@ export default async function EquiposPage() {
       {/* Fleet Telemetry Table */}
       <Panel
         icono="equipos"
-        titulo="Matriz de Telemetría & Horometría Activa"
-        descripcion="Seguimiento de ciclo de vida contra umbral de detención automática"
+        titulo="Telemetría de la flota"
+        descripcion="Consumo del ciclo horómetro contra el umbral de bloqueo automático"
       >
         <div className={tabla.wrapper}>
           <table className={tabla.table}>
             <thead>
               <tr>
-                <th scope="col" className={tabla.th}>Código de Unidad</th>
-                <th scope="col" className={tabla.th}>Tipo / Modelo</th>
-                <th scope="col" className={tabla.th}>Estado Operativo</th>
-                <th scope="col" className={tabla.th}>Consumo del Ciclo</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Horómetro Actual</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Umbral Límite</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Horas Remanentes</th>
-                <th scope="col" className={`${tabla.th} text-right`}>Mantenimientos</th>
+                <th scope="col" className={tabla.th}>Unidad</th>
+                <th scope="col" className={tabla.th}>Tipo</th>
+                <th scope="col" className={tabla.th}>Estado</th>
+                <th scope="col" className={tabla.th}>Ciclo</th>
+                <th scope="col" className={`${tabla.th} text-right`}>Actual</th>
+                <th scope="col" className={`${tabla.th} text-right`}>Umbral</th>
+                <th scope="col" className={`${tabla.th} text-right`}>Restante</th>
+                <th scope="col" className={`${tabla.th} text-right`}>Mantos.</th>
               </tr>
             </thead>
             <tbody>
@@ -116,11 +113,14 @@ export default async function EquiposPage() {
                 const remanente = umbral - actual;
 
                 return (
-                  <tr key={e.id}>
+                  <tr
+                    key={e.id}
+                    className={e.status === 'BLOCKED' ? 'hatch-bloqueo' : undefined}
+                  >
                     <td className={tabla.td}>
                       <Link
                         href={`/equipos/${e.id}`}
-                        className="font-mono font-semibold text-ink hover:text-accent"
+                        className="font-mono font-semibold text-ink hover:text-accent-texto"
                       >
                         {e.code}
                       </Link>
@@ -135,7 +135,7 @@ export default async function EquiposPage() {
                       <BarraHorometro actual={actual} umbral={umbral} />
                     </td>
                     <td className={tabla.num}>{formatHoras(actual)} h</td>
-                    <td className={`${tabla.num} text-ink-low`}>{formatHoras(umbral)} h</td>
+                    <td className={`${tabla.num} text-muted`}>{formatHoras(umbral)} h</td>
                     <td
                       className={`${tabla.num} font-bold ${
                         remanente <= 0 ? 'text-bloqueo' : remanente <= 20 ? 'text-aviso' : 'text-ink'

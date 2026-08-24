@@ -233,7 +233,7 @@ export function AsignarForm({
 
       {/* hint only: the server still validates */}
       {equipo && (
-        <div className="mt-3 flex flex-wrap items-center gap-3 border border-line bg-canvas px-3 py-2 text-xs">
+        <div className="aviso-in mt-3 flex flex-wrap items-center gap-3 rounded-md border border-line bg-canvas px-3 py-2 text-xs">
           <span className="font-mono">{equipo.code}</span>
           <span className="text-muted">{equipo.estado}</span>
           <BarraHorometro
@@ -258,7 +258,7 @@ export function AsignarForm({
       {/* the preview appears on its own, so polite; a submit rejection is an alert */}
       <div aria-live="polite">
         {!error && comprobando && (
-          <p className="mt-4 border border-line bg-canvas px-3 py-2 text-sm text-muted">
+          <p className="aviso-in mt-4 rounded-md border border-line bg-canvas px-3 py-2 text-sm text-muted">
             Comprobando las reglas con esta combinación…
           </p>
         )}
@@ -315,7 +315,7 @@ export function AsignarForm({
           )}
 
           {puedeForzar && pidiendoMotivo && (
-            <div className="border border-aviso/40 bg-aviso-dim p-4">
+            <div className="aviso-in rounded-md border border-aviso/40 bg-aviso-dim p-4">
               <label className="block">
                 <span className="rotulo">Motivo de la excepción</span>
                 <textarea

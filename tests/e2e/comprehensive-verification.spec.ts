@@ -28,11 +28,11 @@ test.describe('Verificación Integral de Acceso y Vistas del Sistema', () => {
 
     // C) Flota & Telemetría
     await page.goto('/equipos');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Parque de Maquinaria Pesada/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Maquinaria Pesada/i);
 
     // D) Personal & Certificaciones
     await page.goto('/operadores');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Padrón de Personal/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Personal Habilitado/i);
 
     // E) Auditoría & Libro Mayor
     await page.goto('/auditoria');

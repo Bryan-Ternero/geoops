@@ -78,11 +78,11 @@ export function Proceso({ asignadas, enRiesgo }: { asignadas: number; enRiesgo: 
             <li key={p.titulo}>
               <IrAPanel
                 objetivo={p.objetivo}
-                className={`group flex h-full gap-3 border p-3 hover:border-accent ${s.caja}`}
+                className={`group flex h-full gap-3 rounded-md border p-3 transition-all duration-(--dur-med) hover:-translate-y-px hover:border-accent hover:shadow-[0_3px_10px_rgba(46,36,22,0.09)] ${s.caja}`}
               >
                 <span
                   aria-hidden
-                  className={`flex size-6 shrink-0 items-center justify-center text-xs font-semibold ${s.numero}`}
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-xs text-xs font-semibold ${s.numero}`}
                 >
                   {i + 1}
                 </span>
@@ -98,7 +98,7 @@ export function Proceso({ asignadas, enRiesgo }: { asignadas: number; enRiesgo: 
                   className={`mt-0.5 size-4 shrink-0 ${
                     p.estado === 'actual'
                       ? 'text-accent'
-                      : 'text-muted opacity-0 transition-opacity group-hover:opacity-100'
+                      : 'text-muted opacity-0 transition-opacity duration-(--dur-med) group-hover:opacity-100'
                   }`}
                 />
               </IrAPanel>

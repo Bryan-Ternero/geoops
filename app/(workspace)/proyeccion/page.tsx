@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { DisponibilidadPorDia, MargenVsConsumo } from '@/src/components/charts';
 import { ESTADO_EQUIPO, JORNADA, formatHoras } from '@/src/components/format';
 import { Aviso, Badge, Encabezado, Panel, Vacio, tabla } from '@/src/components/ui';
+import { StatusCard } from '@/src/components/status-card';
 import type { EquipmentStatus } from '@/src/core/types';
 import { formatIsoDate, toOperationalDate } from '@/src/use-cases/dates';
 import { getProjection, type ProjectionRow } from '@/src/use-cases/get-projection';
@@ -50,8 +51,8 @@ export default async function ProyeccionPage() {
   return (
     <div className="space-y-8">
       <Encabezado
-        titulo="Mantenimiento Predictivo · Ventana de 7 Días"
-        descripcion={`Simulación temporal de consumo de horómetro entre el ${formatIsoDate(fechaInicio)} y el ${formatIsoDate(fechaFin)}. Predice con exactitud qué equipos cruzarán su umbral antes de iniciar la guardia.`}
+        titulo="Mantenimiento Predictivo"
+        descripcion={`Simulación de consumo de horómetro entre el ${formatIsoDate(fechaInicio)} y el ${formatIsoDate(fechaFin)}: predice qué equipos cruzarán su umbral antes de iniciar la guardia.`}
       />
 
       {cruzanUmbral.length + yaBloqueados.length === 0 ? (
@@ -129,8 +130,7 @@ export default async function ProyeccionPage() {
                   <th scope="col" className={`${tabla.th} text-right`}>Horómetro Actual</th>
                   <th scope="col" className={`${tabla.th} text-right`}>Umbral Máx</th>
                   <th scope="col" className={`${tabla.th} text-right`}>Margen Remanente</th>
-                  <th scope="col" className={tabla.th}>Fecha de Cruce</th>
-                  <th scope="col" className={tabla.th}>Guardia de Cruce</th>
+                  <th scope="col" className={tabla.th}>Cruce Proyectado</th>
                   <th scope="col" className={`${tabla.th} text-right`}>Turnos Prog.</th>
                   <th scope="col" className={tabla.th}>Diagnóstico</th>
                 </tr>
@@ -148,33 +148,39 @@ export default async function ProyeccionPage() {
                       : null;
 
                   return (
-                    <tr key={f.equipmentId}>
+                    <tr
+                      key={f.equipmentId}
+                      className={p.status === 'ALREADY_BLOCKED' ? 'hatch-bloqueo' : undefined}
+                    >
                       <td className={tabla.td}>
                         <Link
                           href={`/equipos/${f.equipmentId}`}
-                          className="font-mono font-semibold text-ink hover:text-accent"
+                          className="font-mono font-semibold text-ink hover:text-accent-texto"
                         >
                           {f.code}
                         </Link>
                       </td>
                       <td className={`${tabla.td} font-medium text-muted`}>{f.typeName}</td>
                       <td className={tabla.num}>{formatHoras(f.currentHours)} h</td>
-                      <td className={`${tabla.num} text-ink-low`}>
+                      <td className={`${tabla.num} text-muted`}>
                         {formatHoras(f.nextMaintenanceHours)} h
                       </td>
                       <td className={`${tabla.num} font-bold ${p.hoursRemaining <= 12 ? 'text-bloqueo' : 'text-ink'}`}>
                         {formatHoras(p.hoursRemaining)} h
                       </td>
-                      <td className={`${tabla.td} font-mono font-medium text-ink`}>
-                        {p.status === 'WILL_CROSS' ? formatIsoDate(p.crossesOn) : '—'}
-                      </td>
                       <td className={tabla.td}>
                         {p.status === 'WILL_CROSS' ? (
-                          <span className="text-xs font-semibold text-ink">
-                            Jornada {JORNADA[p.crossesInShift]} <span className="text-ink-low font-normal">(a las {formatHoras(p.hoursIntoShift)} h)</span>
-                          </span>
+                          <>
+                            <span className="font-mono text-sm font-medium text-ink">
+                              {formatIsoDate(p.crossesOn)}
+                            </span>
+                            <span className="mt-0.5 block text-xs text-muted">
+                              Jornada {JORNADA[p.crossesInShift]} · a las{' '}
+                              {formatHoras(p.hoursIntoShift)} h
+                            </span>
+                          </>
                         ) : (
-                          <span className="text-ink-low">—</span>
+                          <span className="text-muted">—</span>
                         )}
                       </td>
                       <td className={`${tabla.num} text-muted`}>{f.plannedShifts}</td>
@@ -218,23 +224,19 @@ export default async function ProyeccionPage() {
           titulo={`Flota en Standby / Sin Turnos Asignados (${equiposSinAsignacion.length})`}
           descripcion="Equipos sin horas programadas en la ventana de simulación actual"
         >
-          <ul className="divide-y divide-line-subtle">
+          <ul className="space-y-2 p-3">
             {equiposSinAsignacion.map((f) => (
-              <li key={f.equipmentId} className="flex flex-wrap items-center justify-between gap-4 p-4 hover:bg-canvas-subtle">
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={`/equipos/${f.equipmentId}`}
-                    className="font-mono text-sm font-semibold text-ink hover:text-accent"
-                  >
-                    {f.code}
-                  </Link>
-                  <Badge tono={ESTADO_EQUIPO[f.status as EquipmentStatus].tono}>
-                    {ESTADO_EQUIPO[f.status as EquipmentStatus].label}
-                  </Badge>
-                </div>
-                <span className="text-xs text-muted font-mono">
-                  {formatHoras(f.currentHours)} h / {formatHoras(f.nextMaintenanceHours)} h umbral
-                </span>
+              <li key={f.equipmentId}>
+                <StatusCard
+                  href={`/equipos/${f.equipmentId}`}
+                  codigo={f.code}
+                  detalle={`${formatHoras(f.currentHours)} h / ${formatHoras(f.nextMaintenanceHours)} h umbral`}
+                  badge={
+                    <Badge tono={ESTADO_EQUIPO[f.status as EquipmentStatus].tono}>
+                      {ESTADO_EQUIPO[f.status as EquipmentStatus].label}
+                    </Badge>
+                  }
+                />
               </li>
             ))}
           </ul>

@@ -68,19 +68,23 @@ export default async function TurnoPage({
   return (
     <>
       <Encabezado
-        titulo={`Turno del ${formatIsoDate(toIsoDate(turno.date))} · ${JORNADA[turno.journey]}`}
-        descripcion={`Duración planificada de ${formatHoras(turno.plannedHours)} h. Cada asignación hereda esas horas y al cerrar se comparan contra las reales.`}
+        titulo={`Guardia del ${formatIsoDate(toIsoDate(turno.date))} · ${JORNADA[turno.journey]}`}
+        descripcion={`${formatHoras(turno.plannedHours)} h planificadas. Cada asignación hereda esas horas y al cierre se comparan contra las reales.`}
         acciones={
           <div className="flex items-center gap-3">
             <Badge tono={ESTADO_TURNO[turno.status].tono}>{ESTADO_TURNO[turno.status].label}</Badge>
-            <Link href="/turnos" className="text-sm text-muted underline hover:text-accent">
-              Volver a turnos
+            <Link
+              href="/turnos"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-(--dur-med) hover:text-accent"
+            >
+              <Icon name="flecha" className="size-3.5 rotate-180" />
+              Volver a guardias
             </Link>
           </div>
         }
       />
 
-      <dl className="mb-6 grid grid-cols-2 border border-line bg-surface sm:grid-cols-4">
+      <dl className="mb-6 grid grid-cols-2 overflow-hidden rounded-lg border border-line bg-surface sm:grid-cols-4">
         {[
           { t: 'Asignaciones vigentes', v: String(vigentes.length) },
           { t: 'En riesgo', v: String(enRiesgo.length) },
@@ -142,7 +146,9 @@ export default async function TurnoPage({
                 {turno.assignments.map((a) => (
                   <tr
                     key={a.id}
-                    className={a.status === 'AT_RISK' ? 'bg-aviso/10' : undefined}
+                    className={`${
+                      a.status === 'AT_RISK' ? 'bg-aviso/10' : ''
+                    } ${a.equipment.status === 'BLOCKED' ? 'hatch-bloqueo' : ''}`}
                   >
                     <td className={`${tabla.td} font-mono`}>
                       <Link href={`/equipos/${a.equipmentId}`} className="hover:text-accent">

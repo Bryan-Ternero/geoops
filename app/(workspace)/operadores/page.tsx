@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { auth } from '@/src/auth';
 import { diasHasta } from '@/src/components/format';
 import { Icon } from '@/src/components/icons';
-import { Aviso, Badge, Encabezado, Panel, Vacio, tabla } from '@/src/components/ui';
+import { Aviso, Badge, Encabezado, Panel, Vacio, boton, tabla } from '@/src/components/ui';
+import { KpiCard } from '@/src/components/kpi-card';
 import { prisma } from '@/src/infrastructure/database/prisma';
 import { formatIsoDate, toIsoDate } from '@/src/use-cases/dates';
 import { NuevoOperador } from './new-operator-modal';
@@ -65,8 +66,8 @@ export default async function OperadoresPage() {
   return (
     <div className="space-y-8">
       <Encabezado
-        titulo="Padrón de Personal · Habilitaciones & Certificaciones"
-        descripcion="Control de habilitaciones por familia de maquinaria pesada. La vigencia se valida contra la fecha de cada guardia antes de autorizar el despacho."
+        titulo="Personal Habilitado"
+        descripcion="Habilitaciones por familia de maquinaria. La vigencia se valida contra la fecha de cada guardia."
         acciones={
           puedeGestionar ? (
             <NuevoOperador
@@ -76,11 +77,11 @@ export default async function OperadoresPage() {
         }
       />
 
-      {/* Filtros y barra de búsqueda (sin JS client-side: filtros semánticos con badges) */}
-      <div className="border border-line bg-surface p-4">
+      {/* Resumen estático de nómina (sin filtros client-side) */}
+      <div className="rounded-lg border border-line bg-surface p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rotulo mr-1">Filtros rápidos:</span>
+            <span className="rotulo mr-1">Resumen</span>
             <span className="inline-flex items-center gap-1.5 rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-ink">
               <Icon name="persona" className="size-3 text-muted" />
               Todos ({operadoresNomina.length})
@@ -97,7 +98,7 @@ export default async function OperadoresPage() {
               <Icon name="alerta" className="size-3" />
               Alerta ({certsPorVencer.length + certsVencidas.length})
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-ink-low">
+            <span className="inline-flex items-center gap-1.5 rounded-sm border border-line px-2.5 py-1 text-xs font-semibold text-muted">
               <Icon name="bloqueado" className="size-3" />
               Sin habilitar ({personalSinHabilitar.length})
             </span>
@@ -121,36 +122,40 @@ export default async function OperadoresPage() {
 
       {/* KPI row + Alerts: Grid de 2 columnas (KPIs 2/3 + Alertas 1/3) */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           {kpisPersonal.map((kpi) => {
-            const tonoBorde =
+            const chip =
               kpi.tono === 'ok'
-                ? 'border-ok/30'
+                ? 'bg-ok-dim text-ok'
                 : kpi.tono === 'aviso'
-                ? 'border-aviso/30'
+                ? 'bg-aviso-dim text-aviso'
                 : kpi.tono === 'bloqueo'
-                ? 'border-bloqueo/30'
-                : 'border-line';
-            const tonoTexto =
+                ? 'bg-bloqueo-dim text-bloqueo'
+                : 'bg-canvas-subtle text-muted';
+            const icono =
               kpi.tono === 'ok'
-                ? 'text-ok'
+                ? ('visto' as const)
                 : kpi.tono === 'aviso'
+                ? ('alerta' as const)
+                : kpi.tono === 'bloqueo'
+                ? ('bloqueado' as const)
+                : ('persona' as const);
+            const tonoValor =
+              kpi.tono === 'aviso'
                 ? 'text-aviso'
                 : kpi.tono === 'bloqueo'
                 ? 'text-bloqueo'
-                : 'text-ink';
+                : undefined;
 
             return (
-              <div
+              <KpiCard
                 key={kpi.label}
-                className={`border ${tonoBorde} bg-surface p-5`}
-              >
-                <span className="rotulo">{kpi.label}</span>
-                <div className={`mt-2 num text-3xl font-semibold tracking-tight ${tonoTexto}`}>
-                  {kpi.valor}
-                </div>
-                <span className="mt-1 block text-xs text-muted">{kpi.sub}</span>
-              </div>
+                rotulo={kpi.label}
+                valor={tonoValor ? <span className={tonoValor}>{kpi.valor}</span> : kpi.valor}
+                subtitulo={kpi.sub}
+                icono={icono}
+                chipClase={chip}
+              />
             );
           })}
         </div>
@@ -158,7 +163,7 @@ export default async function OperadoresPage() {
         {(certsVencidas.length > 0 || personalSinHabilitar.length > 0) ? (
           <Aviso
             tono="aviso"
-            titulo="Restricciones activas · Compliance Técnico"
+            titulo="Restricciones activas"
           >
             {certsVencidas.length > 0 && (
               <p>
@@ -190,8 +195,8 @@ export default async function OperadoresPage() {
       {/* Tabla de Operadores — Matriz de Competencias */}
       <Panel
         icono="operadores"
-        titulo={`Matriz de Competencias · ${operadoresNomina.length} registros`}
-        descripcion="Cada fila contiene la condición operativa del operador y sus habilitaciones vigentes / vencidas por tipo de maquinaria."
+        titulo={`Matriz de competencias · ${operadoresNomina.length} registros`}
+        descripcion="Condición operativa y habilitaciones vigentes o vencidas por tipo de maquinaria."
       >
         <div className={tabla.wrapper}>
           <table className={tabla.table}>
@@ -201,8 +206,8 @@ export default async function OperadoresPage() {
                 <th scope="col" className={tabla.th}>Operador</th>
                 <th scope="col" className={tabla.th}>Documento</th>
                 <th scope="col" className={tabla.th}>Condición</th>
-                <th scope="col" className={tabla.th}>Competencias Técnicas Habilitadas</th>
-                <th scope="col" className={`${tabla.th} w-40`}>Gestión</th>
+                <th scope="col" className={tabla.th}>Habilitaciones</th>
+                <th scope="col" className={`${tabla.th} w-36`}>Gestión</th>
               </tr>
             </thead>
             <tbody>
@@ -226,18 +231,13 @@ export default async function OperadoresPage() {
                     <td className={tabla.td}>
                       <Link
                         href={`/operadores/${o.id}`}
-                        className="font-mono font-semibold text-ink hover:text-accent"
+                        className="font-mono font-semibold text-ink hover:text-accent-texto"
                       >
                         {o.code}
                       </Link>
                     </td>
-                    <td className={`${tabla.td} font-bold text-ink`}>
-                      <div className="flex flex-col gap-0.5">
-                        <span>{o.fullName}</span>
-                        <span className="text-[11px] font-normal text-muted">
-                          Registro {o.code} · nómina minera permanente
-                        </span>
-                      </div>
+                    <td className={`${tabla.td} font-semibold text-ink`}>
+                      {o.fullName}
                     </td>
                     <td className={`${tabla.td} font-mono text-muted`}>{o.document}</td>
                     <td className={tabla.td}>
@@ -260,7 +260,7 @@ export default async function OperadoresPage() {
                     </td>
                     <td className={tabla.td}>
                       {o.certifications.length === 0 ? (
-                        <span className="text-xs text-ink-low italic">
+                        <span className="text-xs text-muted">
                           Sin certificaciones — requiere proceso de habilitación.
                         </span>
                       ) : (
@@ -296,10 +296,9 @@ export default async function OperadoresPage() {
                     <td className={tabla.td}>
                       <Link
                         href={`/operadores/${o.id}`}
-                        className="inline-flex items-center gap-2 border border-line-strong px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-copper hover:text-copper"
+                        className={boton.tabla}
                       >
-                        <Icon name="persona" className="size-3.5" />
-                        {puedeGestionar ? 'Gestionar' : 'Ficha Operativa'}
+                        {puedeGestionar ? 'Gestionar' : 'Ficha'}
                       </Link>
                     </td>
                   </tr>
