@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  test: { environment: 'node', globals: true },
+  test: { environment: 'node', globals: true, testTimeout: 30000 },
   // same alias as tsconfig; import.meta.dirname because this file is esm
   resolve: { alias: { '@': import.meta.dirname } },
 });

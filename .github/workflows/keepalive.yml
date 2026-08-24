@@ -15,4 +15,4 @@ jobs:
       - name: GET /api/health
         run: >-
           curl -fsS --max-time 30 --retry 3 --retry-delay 10
-          https://miners-fullstack-challenge.vercel.app/api/health
+          https://geoops-system.vercel.app/api/health
