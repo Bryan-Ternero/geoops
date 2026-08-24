@@ -93,7 +93,7 @@ programar, pero traslada el problema a la operación en el peor momento.
 **Decisión: sí, pero solo para algunas reglas y dejando traza completa.**
 
 Clasifiqué cada violación en dos grupos; el catálogo completo está en
-`src/domain/rules/violation.ts`:
+`src/core/rules/violation.ts`:
 
 - **`HARD`, no se puede forzar:** operador o equipo ya asignados en el mismo turno, turno
   cerrado, equipo dado de baja. Son imposibilidades físicas o inconsistencias de datos, y
@@ -211,7 +211,7 @@ más de una instancia, que es justamente lo que ocurre en un despliegue serverle
 - **Monolito, un repositorio, un despliegue.** Lo que se evalúa es el modelo, las reglas y
   que la aplicación esté en línea. Separar backend y frontend habría duplicado
   infraestructura sin aportar a eso.
-- **Reglas en TypeScript puro, sin ORM.** `src/domain/` no importa Prisma ni Next: recibe
+- **Reglas en TypeScript puro, sin ORM.** `src/core/` no importa Prisma ni Next: recibe
   datos planos y devuelve `Violation[]`. Así las reglas se testean en milisegundos y se
   pueden leer sin conocer el framework.
 - **Sin salida temprana en el motor de reglas.** La regla 11 pide mostrar todas las razones,

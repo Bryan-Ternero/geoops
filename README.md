@@ -19,7 +19,7 @@ anticipar el bloqueo en lugar de descubrirlo al inicio de la guardia.
 
 | | |
 |---|---|
-| **Aplicación** | https://miners-fullstack-challenge.vercel.app |
+| **Aplicación** | https://geoops-system.vercel.app |
 | **Decisiones de diseño** | [`DECISIONES.md`](./DECISIONES.md) |
 
 ---
