@@ -1,0 +1,5 @@
+# Local secrets must never be uploaded; production values live in the Vercel
+# dashboard (vercel env ls). Negation keeps the example file available.
+.env
+.env.*
+!.env.example
